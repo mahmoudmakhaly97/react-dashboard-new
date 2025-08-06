@@ -239,13 +239,7 @@ const TasksContent = () => {
       console.error('Invalid task object received for deletion:', task)
       return
     }
-
-    const currentSelection = {
-      employee: dashboardRef.current?.getSelectedEmployee?.(),
-      department: dashboardRef.current?.getSelectedDepartment?.(),
-      accordionOpen: persistentSelection.accordionOpen,
-    }
-
+ 
     // Check if task is in past
     if (isTaskInPast(task.date)) {
       showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
@@ -279,14 +273,7 @@ const TasksContent = () => {
       // Force refresh while maintaining selection
       dashboardRef.current.refresh()
 
-      // Restore the previous selection after deletion
-      setTimeout(() => {
-        if (dashboardRef.current && currentSelection.employee) {
-          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
-          setPersistentSelection(currentSelection)
-        }
-        dashboardRef.current?.refresh()
-      }, 100)
+
     } catch (error) {
       console.error('Failed to delete task:', error)
       setModalMessage(error.message || 'Failed to delete task. Please try again.')
@@ -296,6 +283,7 @@ const TasksContent = () => {
       setTimeout(() => {
         if (dashboardRef.current && currentSelection.employee) {
           dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+          dashboardRef.current.refresh()
         }
       }, 100)
     } finally {
@@ -526,15 +514,7 @@ const TasksContent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Store current selection before submission - PRESERVE THE CURRENTLY SELECTED EMPLOYEE
-    const currentEmployee = selectedEmployee
-    setShouldMaintainSelection(true)
-    setLastSelectedEmployee(currentEmployee)
-    // Store current selection before operation
-    const currentSelection = {
-      employee: dashboardRef.current?.getSelectedEmployee?.(),
-      department: dashboardRef.current?.getSelectedDepartment?.(),
-    }
+
     try {
       const selectedDate = dashboardRef.current?.getSelectedDate?.() || new Date()
       const validation = validateTaskDateTime(selectedDate, formData.startTime, false)
@@ -618,13 +598,8 @@ const TasksContent = () => {
       setModalMessageVisible(true)
       toggle()
       setTaskCreated(true)
-
-      setTimeout(() => {
-        if (dashboardRef.current && currentSelection.employee) {
-          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
-          dashboardRef.current.refresh()
-        }
-      }, 100)
+     dashboardRef.current?.refresh();
+  
 
       resetFormData()
       await fetchData()

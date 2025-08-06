@@ -108,6 +108,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       const currentSelection = {
         employee: selectedEmployee,
         department: selectedDepartment,
+        accordionOpen: openAccordionItems,
       }
 
       setDepartments([])
@@ -190,10 +191,6 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
           setSelectedDepartment(updatedDept)
           setSelectedEmployee(updatedEmp)
           setOpenAccordionItems([updatedDept.id])
-          // Update persistent selection with fresh data
-          setPersistentSelection({ employee: updatedEmp, department: updatedDept })
-          // Prevent auto-selection of current user since we're maintaining a selection
-          setShouldAutoSelectCurrentUser(false)
         }
       }
     } catch (err) {
@@ -208,8 +205,22 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
   useImperativeHandle(ref, () => ({
     refresh: async () => {
       setIsRefreshing(true)
-      await fetchData()
-      setIsRefreshing(false)
+      try {
+        await fetchData()
+        // After refresh, maintain the current selection
+        if (selectedEmployee && selectedDepartment) {
+          const updatedDept = departments.find((d) => d.id === selectedDepartment.id)
+          const updatedEmp = updatedDept?.employees.find((e) => e.id === selectedEmployee.id)
+
+          if (updatedDept && updatedEmp) {
+            setSelectedDepartment(updatedDept)
+            setSelectedEmployee(updatedEmp)
+            setOpenAccordionItems([updatedDept.id])
+          }
+        }
+      } finally {
+        setIsRefreshing(false)
+      }
     },
     getSelectedEmployee: () => selectedEmployee,
     getSelectedDate: () => currentDate,
@@ -280,6 +291,16 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
 
   // Enhanced employee selection handler - PRESERVE SELECTED EMPLOYEE VIEW
   const handleEmployeeSelect = (department: Department, employee: Employee | null) => {
+    if (employee?.id !== selectedEmployee?.id || department?.id !== selectedDepartment?.id) {
+      setSelectedDepartment(department)
+      setSelectedEmployee(employee)
+
+      // Update accordion state
+      if (employee) {
+        // When selecting employee, keep the accordion open
+        setOpenAccordionItems([department.id])
+      }
+    }
     setSelectedDepartment(department)
     setSelectedEmployee(employee)
 
@@ -335,7 +356,19 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       prev.includes(department.id) ? prev : [...prev, department.id],
     )
   }
+  useEffect(() => {
+    // When departments load or change, try to restore selection
+    if (departments.length > 0 && selectedEmployee && selectedDepartment) {
+      const dept = departments.find((d) => d.id === selectedDepartment.id)
+      const emp = dept?.employees.find((e) => e.id === selectedEmployee.id)
 
+      if (dept && emp) {
+        setSelectedDepartment(dept)
+        setSelectedEmployee(emp)
+        setOpenAccordionItems([dept.id])
+      }
+    }
+  }, [departments, selectedEmployee, selectedDepartment])
   // MODIFIED: Enhanced auto-selection for current user - ONLY WHEN NO EXISTING SELECTION
   useEffect(() => {
     if (
@@ -354,7 +387,19 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       }
     }
   }, [currentUserId, departments, selectedEmployee, initialUserLoaded, shouldAutoSelectCurrentUser])
+  useEffect(() => {
+    // When departments load or change, try to restore selection
+    if (departments.length > 0 && selectedEmployee && selectedDepartment) {
+      const dept = departments.find((d) => d.id === selectedDepartment.id)
+      const emp = dept?.employees.find((e) => e.id === selectedEmployee.id)
 
+      if (dept && emp) {
+        setSelectedDepartment(dept)
+        setSelectedEmployee(emp)
+        setOpenAccordionItems([dept.id])
+      }
+    }
+  }, [departments])
   // CRITICAL: Restore selection after refresh - PRESERVE SELECTED EMPLOYEE VIEW
   useEffect(() => {
     if (persistentSelection.employee && persistentSelection.department && departments.length > 0) {
@@ -429,13 +474,13 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
             <Accordion
               type="multiple"
               className="w-full"
-              value={persistentSelection.accordionOpen}
-              onValueChange={(value) =>
-                setPersistentSelection((prev) => ({
-                  ...prev,
-                  accordionOpen: value,
-                }))
-              }
+              value={openAccordionItems}
+              onValueChange={(value) => {
+                // Only update accordion state when clicking department headers
+                if (!selectedEmployee) {
+                  setOpenAccordionItems(value)
+                }
+              }}
             >
               {departments.map((department) => (
                 <AccordionItem key={department.id} value={department.id}>
