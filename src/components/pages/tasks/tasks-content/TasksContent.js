@@ -230,79 +230,79 @@ const TasksContent = () => {
   }
 
   // Handle task deletion with employee selection preservation
-const handleDeleteTask = async (task) => {
-  if (!task?.id) {
-    console.error('Invalid task object received for deletion:', task)
-    return
-  }
-
-  // Store current selection before deletion
-  const currentSelection = {
-    employee: dashboardRef.current?.getSelectedEmployee?.(),
-    department: dashboardRef.current?.getSelectedDepartment?.(),
-  }
-
-  // Check if task is in past
-  if (isTaskInPast(task.date)) {
-    showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
-    setDeleteModal(false)
-    setTaskToDelete(null)
-    return
-  }
-
-  const taskId = Number(task.id)
-
-  try {
-    const response = await fetch(`${BASE_URL}/Tasks/DeleteTask/${taskId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        Authorization: `Bearer ${authTasks.token}`,
-      },
-      body: JSON.stringify(taskId),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `HTTP error! Status: ${response.status}`)
+  const handleDeleteTask = async (task) => {
+    if (!task?.id) {
+      console.error('Invalid task object received for deletion:', task)
+      return
     }
 
-    const data = await response.json()
-    setModalMessage(data.message || 'Task deleted successfully')
-    setModalMessageVisible(true)
+    // Store current selection before deletion
+    const currentSelection = {
+      employee: dashboardRef.current?.getSelectedEmployee?.(),
+      department: dashboardRef.current?.getSelectedDepartment?.(),
+    }
 
-    // Force refresh while maintaining selection
-    setRefreshKey((prev) => prev + 1)
+    // Check if task is in past
+    if (isTaskInPast(task.date)) {
+      showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
+      setDeleteModal(false)
+      setTaskToDelete(null)
+      return
+    }
 
-    // Restore the previous selection after deletion
-    setTimeout(() => {
-      if (dashboardRef.current) {
-        if (currentSelection.employee) {
+    const taskId = Number(task.id)
+
+    try {
+      const response = await fetch(`${BASE_URL}/Tasks/DeleteTask/${taskId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          Authorization: `Bearer ${authTasks.token}`,
+        },
+        body: JSON.stringify(taskId),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setModalMessage(data.message || 'Task deleted successfully')
+      setModalMessageVisible(true)
+
+      // Force refresh while maintaining selection
+      dashboardRef.current.refresh()
+
+      // Restore the previous selection after deletion
+      setTimeout(() => {
+        if (dashboardRef.current) {
+          if (currentSelection.employee) {
+            dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+          }
+          if (currentSelection.department) {
+            dashboardRef.current.setSelectedDepartment(currentSelection.department)
+          }
+          dashboardRef.current.refresh()
+        }
+      }, 100)
+    } catch (error) {
+      console.error('Failed to delete task:', error)
+      setModalMessage(error.message || 'Failed to delete task. Please try again.')
+      setModalMessageVisible(true)
+
+      // Even on error, try to restore the previous view
+      setTimeout(() => {
+        if (dashboardRef.current && currentSelection.employee) {
           dashboardRef.current.setSelectedEmployee(currentSelection.employee)
         }
-        if (currentSelection.department) {
-          dashboardRef.current.setSelectedDepartment(currentSelection.department)
-        }
-        dashboardRef.current.refresh()
-      }
-    }, 100)
-  } catch (error) {
-    console.error('Failed to delete task:', error)
-    setModalMessage(error.message || 'Failed to delete task. Please try again.')
-    setModalMessageVisible(true)
-
-    // Even on error, try to restore the previous view
-    setTimeout(() => {
-      if (dashboardRef.current && currentSelection.employee) {
-        dashboardRef.current.setSelectedEmployee(currentSelection.employee)
-      }
-    }, 100)
-  } finally {
-    setDeleteModal(false)
-    setTaskToDelete(null)
+      }, 100)
+    } finally {
+      setDeleteModal(false)
+      setTaskToDelete(null)
+    }
   }
-}
 
   // Updated handleTaskDeleted function
   const handleTaskDeleted = (task) => {
@@ -619,9 +619,6 @@ const handleDeleteTask = async (task) => {
       toggle()
       setTaskCreated(true)
 
-      // Force refresh with maintained selection - KEEP THE SELECTED EMPLOYEE VIEW
-      setRefreshKey((prev) => prev + 1)
-
       setTimeout(() => {
         if (dashboardRef.current && currentSelection.employee) {
           dashboardRef.current.setSelectedEmployee(currentSelection.employee)
@@ -847,7 +844,7 @@ const handleDeleteTask = async (task) => {
       setModalMessageVisible(true)
       setEditModal(false)
       setTaskToEdit(null)
-      setRefreshKey((prev) => prev + 1)
+      dashboardRef.current.refresh()
       resetFormData()
 
       // Restore previous selection after successful update
