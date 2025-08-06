@@ -92,7 +92,42 @@ const TasksContent = () => {
   const [modalMessageVisible, setModalMessageVisible] = useState(false)
   const dashboardRef = useRef()
   const [taskToDelete, setTaskToDelete] = useState(null)
+  const [persistentSelection, setPersistentSelection] = useState({
+    employee: null,
+    department: null,
+  })
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (dashboardRef.current) {
+        const currentEmployee = dashboardRef.current.getSelectedEmployee?.()
+        const currentDepartment = dashboardRef.current.getSelectedDepartment?.()
+
+        if (
+          currentEmployee &&
+          (!persistentSelection.employee || currentEmployee.id !== persistentSelection.employee.id)
+        ) {
+          setPersistentSelection((prev) => ({
+            ...prev,
+            employee: { id: currentEmployee.id, name: currentEmployee.name },
+          }))
+        }
+
+        if (
+          currentDepartment &&
+          (!persistentSelection.department ||
+            currentDepartment.id !== persistentSelection.department.id)
+        ) {
+          setPersistentSelection((prev) => ({
+            ...prev,
+            department: { id: currentDepartment.id, name: currentDepartment.name },
+          }))
+        }
+      }
+    }, 500)
+
+    return () => clearInterval(interval)
+  }, [persistentSelection])
   // Function to show tooltip for past task operations
   const showPastTaskTooltip = (message, targetId) => {
     setPastTaskTooltip({
@@ -195,63 +230,79 @@ const TasksContent = () => {
   }
 
   // Handle task deletion with employee selection preservation
-  const handleDeleteTask = async (task) => {
-    if (!task?.id) return
+const handleDeleteTask = async (task) => {
+  if (!task?.id) {
+    console.error('Invalid task object received for deletion:', task)
+    return
+  }
 
-    // Store current selection before deletion
-    const currentEmployee = selectedEmployee
-    setShouldMaintainSelection(true)
-    setLastSelectedEmployee(currentEmployee)
+  // Store current selection before deletion
+  const currentSelection = {
+    employee: dashboardRef.current?.getSelectedEmployee?.(),
+    department: dashboardRef.current?.getSelectedDepartment?.(),
+  }
 
-    // Check if task is in past
-    if (isTaskInPast(task.date)) {
-      showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
-      setDeleteModal(false)
-      setTaskToDelete(null)
-      return
+  // Check if task is in past
+  if (isTaskInPast(task.date)) {
+    showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
+    setDeleteModal(false)
+    setTaskToDelete(null)
+    return
+  }
+
+  const taskId = Number(task.id)
+
+  try {
+    const response = await fetch(`${BASE_URL}/Tasks/DeleteTask/${taskId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        Authorization: `Bearer ${authTasks.token}`,
+      },
+      body: JSON.stringify(taskId),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.message || `HTTP error! Status: ${response.status}`)
     }
 
-    const taskId = Number(task.id)
+    const data = await response.json()
+    setModalMessage(data.message || 'Task deleted successfully')
+    setModalMessageVisible(true)
 
-    try {
-      const response = await fetch(`${BASE_URL}/Tasks/DeleteTask/${taskId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          Authorization: `Bearer ${authTasks.token}`,
-        },
-        body: JSON.stringify(taskId),
-      })
+    // Force refresh while maintaining selection
+    setRefreshKey((prev) => prev + 1)
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      setModalMessage(data.message || 'Task deleted successfully')
-      setModalMessageVisible(true)
-
-      // Force dashboard refresh with maintained selection
-      setRefreshKey((prev) => prev + 1)
-
-      // Use a timeout to ensure the dashboard refreshes first
-      setTimeout(() => {
-        if (dashboardRef.current && currentEmployee) {
-          dashboardRef.current.setSelectedEmployee(currentEmployee)
-          dashboardRef.current.refresh()
+    // Restore the previous selection after deletion
+    setTimeout(() => {
+      if (dashboardRef.current) {
+        if (currentSelection.employee) {
+          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
         }
-        setShouldMaintainSelection(false)
-      }, 100)
-    } catch (error) {
-      console.error('Failed to delete task:', error)
-      setModalMessage('Failed to delete task. Please try again.')
-      setModalMessageVisible(true)
-    }
+        if (currentSelection.department) {
+          dashboardRef.current.setSelectedDepartment(currentSelection.department)
+        }
+        dashboardRef.current.refresh()
+      }
+    }, 100)
+  } catch (error) {
+    console.error('Failed to delete task:', error)
+    setModalMessage(error.message || 'Failed to delete task. Please try again.')
+    setModalMessageVisible(true)
 
+    // Even on error, try to restore the previous view
+    setTimeout(() => {
+      if (dashboardRef.current && currentSelection.employee) {
+        dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+      }
+    }, 100)
+  } finally {
     setDeleteModal(false)
     setTaskToDelete(null)
   }
+}
 
   // Updated handleTaskDeleted function
   const handleTaskDeleted = (task) => {
@@ -286,7 +337,7 @@ const TasksContent = () => {
     fetchData()
   }, [])
 
-  // Enhanced selection maintenance effect
+  // Enhanced selection maintenance effect - PRESERVE SELECTED EMPLOYEE
   useEffect(() => {
     const interval = setInterval(() => {
       if (dashboardRef.current) {
@@ -304,7 +355,7 @@ const TasksContent = () => {
           return
         }
 
-        // Normal selection tracking
+        // Normal selection tracking - but don't override with current user automatically
         if (currentEmployee && currentEmployee.id !== selectedEmployee?.id) {
           setSelectedEmployee(currentEmployee)
         }
@@ -471,15 +522,19 @@ const TasksContent = () => {
     return taskTime
   }
 
-  // Enhanced handleSubmit with employee selection preservation
+  // Enhanced handleSubmit with employee selection preservation - KEEP SELECTED EMPLOYEE VIEW
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Store current selection before submission
+    // Store current selection before submission - PRESERVE THE CURRENTLY SELECTED EMPLOYEE
     const currentEmployee = selectedEmployee
     setShouldMaintainSelection(true)
     setLastSelectedEmployee(currentEmployee)
-
+    // Store current selection before operation
+    const currentSelection = {
+      employee: dashboardRef.current?.getSelectedEmployee?.(),
+      department: dashboardRef.current?.getSelectedDepartment?.(),
+    }
     try {
       const selectedDate = dashboardRef.current?.getSelectedDate?.() || new Date()
       const validation = validateTaskDateTime(selectedDate, formData.startTime, false)
@@ -564,15 +619,14 @@ const TasksContent = () => {
       toggle()
       setTaskCreated(true)
 
-      // Force refresh with maintained selection
+      // Force refresh with maintained selection - KEEP THE SELECTED EMPLOYEE VIEW
       setRefreshKey((prev) => prev + 1)
 
       setTimeout(() => {
-        if (dashboardRef.current && currentEmployee) {
-          dashboardRef.current.setSelectedEmployee(currentEmployee)
+        if (dashboardRef.current && currentSelection.employee) {
+          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
           dashboardRef.current.refresh()
         }
-        setShouldMaintainSelection(false)
       }, 100)
 
       resetFormData()
@@ -676,29 +730,34 @@ const TasksContent = () => {
     return taskDay < today
   }
 
-  // Enhanced handleUpdateTask with employee selection preservation
+  // Enhanced handleUpdateTask with employee selection preservation - KEEP SELECTED EMPLOYEE VIEW
   const handleUpdateTask = async (e) => {
     e.preventDefault()
 
-    // Store current selection before update
-    const currentEmployee = selectedEmployee
-    setShouldMaintainSelection(true)
-    setLastSelectedEmployee(currentEmployee)
+    if (!taskToEdit) {
+      console.error('No task selected for editing')
+      return
+    }
 
-    if (!taskToEdit) return
+    // Store current selection before any operations
+    const currentSelection = {
+      employee: dashboardRef.current?.getSelectedEmployee?.(),
+      department: dashboardRef.current?.getSelectedDepartment?.(),
+    }
 
     try {
       const selectedDate = new Date(taskToEdit.startTime)
 
+      // Validate task date/time
       const validation = validateTaskDateTime(selectedDate, formData.startTime, true)
       if (!validation.isValid) {
         setTooltipMessage(validation.message)
         setTooltipOpen(true)
         setTimeout(() => setTooltipOpen(false), 4000)
-        setShouldMaintainSelection(false)
         return
       }
 
+      // Convert time to Egypt timezone
       const convertToEgyptISOTime = (timeStr, date = selectedDate) => {
         if (!timeStr || !date) return null
 
@@ -730,21 +789,24 @@ const TasksContent = () => {
         return new Date(dateObj.getTime() - tzOffset).toISOString()
       }
 
+      // Validate required fields
       if (!formData.startTime || !formData.slotCount || formData.slotCount <= 0) {
         setModalMessage('Start time and slot count are required and must be valid')
         setModalMessageVisible(true)
-        setShouldMaintainSelection(false)
         return
       }
 
+      // Prepare API data
       const apiData = {
         id: taskToEdit.id,
         title: formData.title,
         description: formData.description,
-        assignedToEmployeeId: Number(formData.assignedToEmployeeId || selectedEmployee?.id),
+        assignedToEmployeeId: Number(
+          formData.assignedToEmployeeId || currentSelection.employee?.id,
+        ),
         createdByEmployeeId: Number(formData.createdByEmployeeId),
         updatedByEmployeeId: Number(formData.updatedByEmployeeId || formData.createdByEmployeeId),
-        departmentId: Number(formData.departmentId || selectedEmployee?.departmentId || 0),
+        departmentId: Number(formData.departmentId || currentSelection.employee?.departmentId || 0),
         slotCount: Number(formData.slotCount),
         clientId: formData.clientId,
         startTime: convertToEgyptISOTime(formData.startTime),
@@ -752,6 +814,7 @@ const TasksContent = () => {
         createdAt: formData.createdAt,
       }
 
+      // Send update request
       const response = await fetch(`${BASE_URL}/Tasks/UpdateTask`, {
         method: 'POST',
         headers: {
@@ -762,27 +825,21 @@ const TasksContent = () => {
       })
 
       const responseData = await response.json()
-      console.log('Update task response:', responseData)
 
       if (!response.ok) {
+        let errorMessage = 'Error updating task. Please try again.'
+
         if (
           responseData.message?.includes('Time slot conflict') ||
           responseData.error?.includes('Time slot conflict') ||
           responseData.message?.includes('overlaps') ||
           responseData.error?.includes('overlaps')
         ) {
-          setTooltipMessage(
-            'Oops! This time slot overlaps with an existing task. Please choose a different time.',
-          )
-          setTooltipOpen(true)
-          setTimeout(() => setTooltipOpen(false), 4000)
-        } else {
-          console.error('Unhandled task update error:', responseData)
-          setModalMessage('Error updating task. Please try again.')
-          setModalMessageVisible(true)
+          errorMessage =
+            'This time slot overlaps with an existing task. Please choose a different time.'
         }
-        setShouldMaintainSelection(false)
-        return
+
+        throw new Error(errorMessage)
       }
 
       // Success case
@@ -793,23 +850,39 @@ const TasksContent = () => {
       setRefreshKey((prev) => prev + 1)
       resetFormData()
 
-      // Force refresh with maintained selection
+      // Restore previous selection after successful update
       setTimeout(() => {
-        if (dashboardRef.current && currentEmployee) {
-          dashboardRef.current.setSelectedEmployee(currentEmployee)
+        if (dashboardRef.current) {
+          if (currentSelection.employee) {
+            dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+          }
+          if (currentSelection.department) {
+            dashboardRef.current.setSelectedDepartment(currentSelection.department)
+          }
           dashboardRef.current.refresh()
         }
-        setShouldMaintainSelection(false)
       }, 100)
     } catch (error) {
       console.error('Error updating task:', error)
-      setTooltipMessage('Oops! Something went wrong while updating the task. Please try again.')
-      setTooltipOpen(true)
-      setTimeout(() => setTooltipOpen(false), 4000)
-      setShouldMaintainSelection(false)
+
+      // Show appropriate error message
+      if (error.message.includes('time slot')) {
+        setTooltipMessage(error.message)
+        setTooltipOpen(true)
+        setTimeout(() => setTooltipOpen(false), 4000)
+      } else {
+        setModalMessage(error.message)
+        setModalMessageVisible(true)
+      }
+
+      // Attempt to restore previous view even on error
+      setTimeout(() => {
+        if (dashboardRef.current && currentSelection.employee) {
+          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+        }
+      }, 100)
     }
   }
-
   function parseTimeToSelectorValue(timeStr) {
     if (!timeStr) return { hours: 12, minutes: 0, period: 'AM' }
 

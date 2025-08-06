@@ -81,11 +81,15 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([])
   const [initialUserLoaded, setInitialUserLoaded] = useState(false)
-  // Add persistent selection state
+
+  // Add persistent selection state - CRITICAL FOR MAINTAINING VIEW
   const [persistentSelection, setPersistentSelection] = useState<{
     employee: Employee | null
     department: Department | null
   }>({ employee: null, department: null })
+
+  // PREVENT AUTO-SELECTION - Add flag to control initial auto-selection
+  const [shouldAutoSelectCurrentUser, setShouldAutoSelectCurrentUser] = useState(true)
 
   const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
   const authTasks = JSON.parse(localStorage.getItem('authData'))
@@ -100,7 +104,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
     try {
       setLoading(true)
 
-      // Store current selection before clearing
+      // Store current selection before clearing - PRESERVE SELECTED EMPLOYEE VIEW
       const currentSelection = {
         employee: selectedEmployee,
         department: selectedDepartment,
@@ -172,7 +176,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
 
       setDepartments(processedDepartments)
 
-      // Restore selection if we had one
+      // CRITICAL: Restore selection if we had one - PRESERVE SELECTED EMPLOYEE VIEW
       if (currentSelection.employee && currentSelection.department) {
         // Find the updated employee and department
         const updatedDept = processedDepartments.find(
@@ -186,6 +190,10 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
           setSelectedDepartment(updatedDept)
           setSelectedEmployee(updatedEmp)
           setOpenAccordionItems([updatedDept.id])
+          // Update persistent selection with fresh data
+          setPersistentSelection({ employee: updatedEmp, department: updatedDept })
+          // Prevent auto-selection of current user since we're maintaining a selection
+          setShouldAutoSelectCurrentUser(false)
         }
       }
     } catch (err) {
@@ -194,14 +202,6 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
     } finally {
       setLoading(false)
     }
-  }
-
-  const toggleDeleteModal = () => setDeleteModal(!deleteModal)
-
-  const refresh = async () => {
-    setIsRefreshing(true)
-    await fetchData()
-    setIsRefreshing(false)
   }
 
   // Enhanced imperative handle with better selection management
@@ -228,6 +228,8 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
           setOpenAccordionItems([dept.id])
           // Store persistent selection
           setPersistentSelection({ employee: fullEmployee, department: dept })
+          // Prevent auto-selection since we're manually setting an employee
+          setShouldAutoSelectCurrentUser(false)
         }
       } else {
         setSelectedEmployee(null)
@@ -276,16 +278,21 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
     return colors[Math.floor(Math.random() * colors.length)]
   }
 
-  // Enhanced employee selection handler
+  // Enhanced employee selection handler - PRESERVE SELECTED EMPLOYEE VIEW
   const handleEmployeeSelect = (department: Department, employee: Employee | null) => {
     setSelectedDepartment(department)
     setSelectedEmployee(employee)
 
-    // Store persistent selection
+    // Store persistent selection - CRITICAL FOR MAINTAINING VIEW
     setPersistentSelection({
       employee: employee,
       department: department,
     })
+
+    // Prevent auto-selection when user manually selects someone
+    if (employee) {
+      setShouldAutoSelectCurrentUser(false)
+    }
 
     // For initial load, keep the accordion open
     if (!initialUserLoaded && employee?.id === currentUserId?.toString()) {
@@ -324,9 +331,15 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
     )
   }
 
-  // Enhanced auto-selection for current user
+  // MODIFIED: Enhanced auto-selection for current user - ONLY WHEN NO EXISTING SELECTION
   useEffect(() => {
-    if (currentUserId && !selectedEmployee && departments.length > 0 && !initialUserLoaded) {
+    if (
+      currentUserId &&
+      !selectedEmployee &&
+      departments.length > 0 &&
+      !initialUserLoaded &&
+      shouldAutoSelectCurrentUser // Only auto-select if flag is true
+    ) {
       for (const dept of departments) {
         const foundEmployee = dept.employees.find((emp) => emp.id === currentUserId.toString())
         if (foundEmployee) {
@@ -335,9 +348,9 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
         }
       }
     }
-  }, [currentUserId, departments, selectedEmployee, initialUserLoaded])
+  }, [currentUserId, departments, selectedEmployee, initialUserLoaded, shouldAutoSelectCurrentUser])
 
-  // Restore selection after refresh
+  // CRITICAL: Restore selection after refresh - PRESERVE SELECTED EMPLOYEE VIEW
   useEffect(() => {
     if (persistentSelection.employee && persistentSelection.department && departments.length > 0) {
       const dept = departments.find((d) => d.id === persistentSelection.department?.id)
@@ -347,6 +360,8 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
         setSelectedDepartment(dept)
         setSelectedEmployee(emp)
         setOpenAccordionItems([dept.id])
+        // Don't auto-select current user anymore since we have a persistent selection
+        setShouldAutoSelectCurrentUser(false)
       }
     }
   }, [departments, persistentSelection])
