@@ -1,0 +1,45 @@
+.days,
+.today-border {
+  border-right: 1px dotted #721a95;
+}
+.today-border {
+  width: 240px;
+}
+.today_name:first-child {
+  width: 200px !important;
+  left: 80px;
+}
+.empty-department {
+  @media (max-width: 768px) {
+    position: absolute;
+    top: 150px;
+  }
+}
+// .selected-day {
+//   background-color: #dfe3e7;
+// }
+
+.selected-day-header {
+  background-color: #dfe3e7;
+
+  font-weight: 600;
+}
+.scrollbar-custom::-webkit-scrollbar {
+  height: 8px;
+  position: relative;
+  top: 200px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
