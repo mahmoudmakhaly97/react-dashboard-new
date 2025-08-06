@@ -480,7 +480,6 @@ const Dashboard = () => {
     <div className="employees">
       <div className="title">
         <h4 className="fw-bold mb-0">Employees</h4>
-        <p>Lorem Ipsum is simply dummy text </p>
       </div>
 
       <Row>
