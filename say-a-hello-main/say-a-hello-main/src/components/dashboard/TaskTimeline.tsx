@@ -56,6 +56,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const [selectedDayForNewTask, setSelectedDayForNewTask] = useState<Date>(() => new Date())
   const [isViewingCurrentWeek, setIsViewingCurrentWeek] = useState(true)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [currentUserData, setCurrentUserData] = useState<any>(null)
 
   const hourHeight = 120
   const hours = Array.from({ length: 9 }, (_, i) => i + 10) // 10 AM to 6 PM
@@ -190,23 +191,88 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   }
 
   const dateRange = getDateRange()
+  useEffect(() => {
+    const fetchCurrentUserData = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/Employee/GetEmployeeWithId?id=${currentUserId}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
+        const data = await response.json()
+        setCurrentUserData(data)
 
+        // If user is manager, fetch their team
+        if (data.isManager) {
+          const teamResponse = await fetch(`${BASE_URL}/Employee/GetManagerTeam`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          })
+          const teamData = await teamResponse.json()
+          setCurrentUserData((prev) => ({
+            ...prev,
+            managerTeam: teamData,
+          }))
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    if (currentUserId) {
+      fetchCurrentUserData()
+    }
+  }, [currentUserId, authToken])
   // Updated getTasks function
+  const canViewTask = (task: Task) => {
+    if (!currentUserId || !currentUserData) return false
+
+    // Convert IDs to strings for consistent comparison
+    const currentUserIdStr = String(currentUserId)
+    const taskEmployeeIdStr = String(task.assignedToEmployeeId)
+
+    // HR Managers can see all tasks
+    if (currentUserData.department === 'HR' && currentUserData.isManager) {
+      return true
+    }
+
+    // Account Managers can see all tasks
+    if (currentUserData.department === 'Account Manager') {
+      return true
+    }
+
+    // Managers can see their own tasks and their team's tasks
+    if (currentUserData.isManager) {
+      // Can see own tasks
+      if (taskEmployeeIdStr === currentUserIdStr) {
+        return true
+      }
+
+      // Can see team members' tasks
+      const isTeamMember = currentUserData.managerTeam?.some(
+        (member: any) => String(member.id) === taskEmployeeIdStr,
+      )
+
+      return isTeamMember
+    }
+
+    // Regular employees can only see their own tasks
+    return taskEmployeeIdStr === currentUserIdStr
+  }
   const getTasks = () => {
     if (!department) return []
 
     let tasks = []
 
     if (employee || showOnlyMyTasks) {
-      // Get tasks for the selected employee or current user
       if (employee) {
-        tasks = employee.tasks || []
+        tasks = (employee.tasks || []).filter((task) => canViewTask(task))
       } else {
-        // For "My Tasks" view, get all tasks from all departments for current user
         tasks =
           department.employees?.flatMap((emp) =>
             (emp.tasks || [])
-              .filter((task) => task.assignedToEmployeeId?.toString() === currentUserId?.toString())
+              .filter((task) => canViewTask(task))
               .map((task) => ({
                 ...task,
                 employeeName: emp.name,
@@ -215,17 +281,15 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           ) || []
       }
 
-      // Filter tasks for the week range
       tasks = tasks.filter((task) => {
         const taskDate = new Date(task.date)
         return dateRange.some((date) => isSameDay(taskDate, date))
       })
     } else {
-      // Department view - single day
       tasks =
         department.employees?.flatMap((emp) =>
           (emp.tasks || [])
-            .filter((task) => isSameDay(new Date(task.date), currentDate))
+            .filter((task) => isSameDay(new Date(task.date), currentDate) && canViewTask(task))
             .map((task) => ({
               ...task,
               employeeName: emp.name,
@@ -236,7 +300,6 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
     return tasks
   }
-
   const tasks = getTasks()
 
   useEffect(() => {

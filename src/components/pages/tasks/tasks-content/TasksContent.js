@@ -49,6 +49,7 @@ const TasksContent = () => {
   const [showOnlyMyTasks, setShowOnlyMyTasks] = useState(false)
   const [currentUserId, setCurrentUserId] = useState(null)
   const [selectedDepartment, setSelectedDepartment] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
 
   // Add state to preserve selected employee
   const [lastSelectedEmployee, setLastSelectedEmployee] = useState(null)
@@ -991,7 +992,113 @@ const TasksContent = () => {
 
     return false
   }
+  const checkTaskPermissions = (currentUser, targetEmployeeId) => {
+    if (!currentUser) return { canAddTask: false, canViewTask: false, canViewAll: false }
 
+    // Convert IDs to string for consistent comparison
+    const currentUserId = String(currentUser.employeeId)
+    const targetId = String(targetEmployeeId)
+
+    // HR can do anything
+    if (currentUser.department === 'HR') {
+      return { canAddTask: true, canViewTask: true, canViewAll: true }
+    }
+
+    // Account Manager can do anything
+    if (currentUser.department === 'Account Manager') {
+      return { canAddTask: true, canViewTask: true, canViewAll: true }
+    }
+
+    // Manager can manage themselves and their team
+    if (currentUser.isManager) {
+      const isSelf = currentUserId === targetId
+      const isDirectReport = currentUser.managerTeam?.some(
+        (member) => String(member.id) === targetId,
+      )
+
+      return {
+        canAddTask: isSelf || isDirectReport,
+        canViewTask: isSelf || isDirectReport,
+        canViewAll: false,
+      }
+    }
+
+    // Regular employee - can only view their own tasks
+    return {
+      canAddTask: false,
+      canViewTask: currentUserId === targetId,
+      canViewAll: false,
+    }
+  }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Fetch user data
+        const userResponse = await fetch(
+          `${BASE_URL}/Employee/GetEmployeeWithId?id=${currentUserId}`,
+          {
+            headers: { Authorization: `Bearer ${authToken}` },
+          },
+        )
+        const userData = await userResponse.json()
+
+        // If user is manager, fetch their team
+        if (userData.isManager) {
+          const teamResponse = await fetch(`${BASE_URL}/Employee/GetManagerTeam`, {
+            headers: { Authorization: `Bearer ${authToken}` },
+          })
+          const teamData = await teamResponse.json()
+          userData.managerTeam = teamData
+        }
+
+        setCurrentUser(userData)
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    if (currentUserId) {
+      fetchUserData()
+    }
+  }, [currentUserId, authToken])
+  const renderAddTaskButton = () => {
+    if (!selectedEmployee || !currentUser) return null
+
+    const permissions = checkTaskPermissions(currentUser, selectedEmployee.id)
+
+    if (!permissions.canAddTask) {
+      const isSelf = String(currentUser.employeeId) === String(selectedEmployee.id)
+      const tooltipMessage = isSelf
+        ? currentUser.isManager
+          ? 'Managers can add tasks for themselves'
+          : 'Regular employees cannot add tasks for themselves'
+        : 'You can only add tasks for members of your team'
+
+      return (
+        <div className="d-flex justify-content-end align-items-center mb-4 pe-5">
+          <span
+            id="disabledButtonWrapper"
+            style={{ display: 'inline-block', cursor: 'not-allowed' }}
+          >
+            <Button color="primary" disabled style={{ pointerEvents: 'none', opacity: 0.5 }}>
+              {isSelf ? 'Add Task for Myself' : `Add Task for ${selectedEmployee.name}`}
+            </Button>
+          </span>
+          <UncontrolledTooltip target="disabledButtonWrapper" placement="top">
+            {tooltipMessage}
+          </UncontrolledTooltip>
+        </div>
+      )
+    }
+
+    return (
+      <Button color="primary" onClick={toggle} className="add-task">
+        {String(currentUser.employeeId) === String(selectedEmployee.id)
+          ? 'Add Task for Myself'
+          : `Add Task for ${selectedEmployee.name}`}
+      </Button>
+    )
+  }
   useEffect(() => {
     const interval = setInterval(() => {
       if (dashboardRef.current) {
@@ -1081,47 +1188,7 @@ const TasksContent = () => {
 
   return (
     <div className="tasks-container  ">
-      {selectedEmployee?.id && selectedEmployee?.name ? (
-        authTasks?.role === 'Account Manager' ? (
-          <Button color="primary" onClick={toggle} className="add-task">
-            Add Task for {selectedEmployee.name}
-          </Button>
-        ) : isEmployeeInManagerTeam(selectedEmployee.id) ? (
-          <Button color="primary" onClick={toggle} className="add-task">
-            {String(selectedEmployee.id) === String(currentUserId)
-              ? 'Add Task for Myself'
-              : `Add Task for ${selectedEmployee.name}`}
-          </Button>
-        ) : (
-          <div className="d-flex justify-content-end align-items-center mb-4 pe-5">
-            <span
-              id="disabledButtonWrapper"
-              style={{
-                display: 'inline-block',
-                cursor: 'not-allowed',
-              }}
-            >
-              <Button color="primary" disabled style={{ pointerEvents: 'none', opacity: 0.5 }}>
-                {String(selectedEmployee.id) === String(currentUserId)
-                  ? 'Add Task for Myself'
-                  : `Add Task for ${selectedEmployee?.name}`}
-              </Button>
-            </span>
-            <UncontrolledTooltip
-              target="disabledButtonWrapper"
-              placement="top"
-              delay={{ show: 0, hide: 0 }}
-              fade={true}
-            >
-              {String(selectedEmployee.id) === String(currentUserId)
-                ? managerTeam.length === 0
-                  ? 'Regular employees cannot add tasks for themselves'
-                  : "You don't have permission to add tasks"
-                : 'You can only add tasks for members of your team or their subordinates'}
-            </UncontrolledTooltip>
-          </div>
-        )
-      ) : null}
+      {renderAddTaskButton()}
 
       {pastTaskTooltip.show && pastTaskTooltip.target && (
         <UncontrolledTooltip
