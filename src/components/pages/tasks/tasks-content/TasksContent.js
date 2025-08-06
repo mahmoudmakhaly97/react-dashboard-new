@@ -946,29 +946,47 @@ const TasksContent = () => {
   }, [location])
 
   const isEmployeeInManagerTeam = (employeeId) => {
+    // HR managers can see all
+    if (authTasks?.department === 'HR' && authTasks?.isManager) {
+      return true
+    }
+
+    // Account managers can see all
     if (authTasks?.role === 'Account Manager') {
       return true
     }
 
-    const hasSubordinates = managerTeam.length > 0
+    // Get the selected employee's department
+    const selectedEmployee = employees.find((emp) => String(emp.id) === String(employeeId))
+    const selectedEmployeeDept = selectedEmployee?.department
 
-    if (hasSubordinates) {
-      if (currentUserId && String(employeeId) === String(currentUserId)) {
+    // For managers - only allow if in same department
+    if (authTasks?.isManager) {
+      // Allow seeing own tasks
+      if (String(employeeId) === String(currentUserId)) {
         return true
       }
 
-      const isDirectTeamMember = managerTeam.some(
-        (teamMember) => String(teamMember.id) === String(employeeId),
-      )
+      // Check if same department
+      if (selectedEmployeeDept === authTasks?.department) {
+        const hasSubordinates = managerTeam.length > 0
 
-      const isSubEmployee = employees.some((emp) => {
-        const isManagedByTeamMember = managerTeam.some(
-          (teamMember) => String(teamMember.id) === String(emp.managerId),
-        )
-        return isManagedByTeamMember && String(emp.id) === String(employeeId)
-      })
+        if (hasSubordinates) {
+          const isDirectTeamMember = managerTeam.some(
+            (teamMember) => String(teamMember.id) === String(employeeId),
+          )
 
-      return isDirectTeamMember || isSubEmployee
+          const isSubEmployee = employees.some((emp) => {
+            const isManagedByTeamMember = managerTeam.some(
+              (teamMember) => String(teamMember.id) === String(emp.managerId),
+            )
+            return isManagedByTeamMember && String(emp.id) === String(employeeId)
+          })
+
+          return isDirectTeamMember || isSubEmployee
+        }
+      }
+      return false
     }
 
     return false
