@@ -287,6 +287,11 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
     setPersistentSelection({
       employee: employee,
       department: department,
+      accordionOpen: employee
+        ? [department.id]
+        : openAccordionItems.includes(department.id)
+          ? openAccordionItems.filter((id) => id !== department.id)
+          : [...openAccordionItems, department.id],
     })
 
     // Prevent auto-selection when user manually selects someone
@@ -359,9 +364,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       if (dept && emp && (!selectedEmployee || selectedEmployee.id !== emp.id)) {
         setSelectedDepartment(dept)
         setSelectedEmployee(emp)
-        setOpenAccordionItems([dept.id])
-        // Don't auto-select current user anymore since we have a persistent selection
-        setShouldAutoSelectCurrentUser(false)
+        setOpenAccordionItems(persistentSelection.accordionOpen)
       }
     }
   }, [departments, persistentSelection])
@@ -426,8 +429,13 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
             <Accordion
               type="multiple"
               className="w-full"
-              value={openAccordionItems}
-              onValueChange={handleAccordionChange}
+              value={persistentSelection.accordionOpen}
+              onValueChange={(value) =>
+                setPersistentSelection((prev) => ({
+                  ...prev,
+                  accordionOpen: value,
+                }))
+              }
             >
               {departments.map((department) => (
                 <AccordionItem key={department.id} value={department.id}>

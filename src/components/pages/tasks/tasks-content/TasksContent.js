@@ -93,8 +93,11 @@ const TasksContent = () => {
   const dashboardRef = useRef()
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [persistentSelection, setPersistentSelection] = useState({
-    employee: null,
+    employee: location.state?.employeeId
+      ? { id: location.state.employeeId, name: location.state.employeeName }
+      : null,
     department: null,
+    accordionOpen: location.state?.employeeId ? [location.state.departmentId] : [],
   })
 
   useEffect(() => {
@@ -236,10 +239,10 @@ const TasksContent = () => {
       return
     }
 
-    // Store current selection before deletion
     const currentSelection = {
       employee: dashboardRef.current?.getSelectedEmployee?.(),
       department: dashboardRef.current?.getSelectedDepartment?.(),
+      accordionOpen: persistentSelection.accordionOpen,
     }
 
     // Check if task is in past
@@ -277,15 +280,11 @@ const TasksContent = () => {
 
       // Restore the previous selection after deletion
       setTimeout(() => {
-        if (dashboardRef.current) {
-          if (currentSelection.employee) {
-            dashboardRef.current.setSelectedEmployee(currentSelection.employee)
-          }
-          if (currentSelection.department) {
-            dashboardRef.current.setSelectedDepartment(currentSelection.department)
-          }
-          dashboardRef.current.refresh()
+        if (dashboardRef.current && currentSelection.employee) {
+          dashboardRef.current.setSelectedEmployee(currentSelection.employee)
+          setPersistentSelection(currentSelection)
         }
+        dashboardRef.current?.refresh()
       }, 100)
     } catch (error) {
       console.error('Failed to delete task:', error)
