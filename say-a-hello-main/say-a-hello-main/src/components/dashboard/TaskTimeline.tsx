@@ -322,7 +322,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const isPM = task.time.toLowerCase().includes('pm')
 
     const hourIn24 = isPM && hour !== 12 ? hour + 12 : hour === 12 && !isPM ? 0 : hour
-    const topPosition = (hourIn24 - 9.5) * hourHeight + (minute * hourHeight) / 60
+    const topPosition = (hourIn24 - 9.54) * hourHeight + (minute * hourHeight) / 60
 
     let heightInMinutes = hourHeight // Default to 1 hour height
     if (task.endTime) {
@@ -463,18 +463,24 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                 {(employee || showOnlyMyTasks) && (
                   <div className="flex relative">
                     {/* Hour markers */}
+
                     <div className="absolute left-0 right-0 h-full pointer-events-none">
-                      {hours.map((hour) => (
-                        <div
-                          key={hour}
-                          className="border-t border-gray-200"
-                          style={{
-                            top: `${(hour - 9.2) * hourHeight}px`,
-                            position: 'absolute',
-                            width: '100%',
-                          }}
-                        ></div>
-                      ))}
+                      {hours.map((hour) => {
+                        // Create 3 markers per hour (0, 20, 40 minutes)
+                        return [0, 20, 40].map((minute, idx) => (
+                          <div
+                            key={`${hour}-${minute}`}
+                            className={`border-b ${
+                              minute === 0 ? 'border-gray-300' : 'border-gray-200'
+                            }`}
+                            style={{
+                              top: `${(hour - 9.2) * hourHeight + (minute * hourHeight) / 60}px`,
+                              position: 'absolute',
+                              width: '100%',
+                            }}
+                          ></div>
+                        ))
+                      })}
                     </div>
 
                     {/* Time indicator line */}
@@ -542,13 +548,13 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     handleViewDetails={handleViewDetails}
                                   />
                                   <Trash2
-                                    size={19}
-                                    className="absolute top-4 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                    size={12}
+                                    className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     onClick={() => handleDeleteClick(task)}
                                   />
                                   <Pencil
-                                    size={19}
-                                    className="absolute top-[5rem] right-3 cursor-pointer text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                    size={5}
+                                    className="absolute top-[1.5rem] right-3 cursor-pointer  text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     onClick={() => handleEditClick(task)}
                                   />
                                 </div>
@@ -564,20 +570,24 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                 {!employee && !showOnlyMyTasks && department && department.employees && (
                   <div className="flex">
                     {/* Hour markers for department view */}
+                    {/* Hour markers for department view */}
                     <div className="absolute left-0 right-0 h-full pointer-events-none">
-                      {hours.map((hour) => (
-                        <div
-                          key={hour}
-                          className="border-t border-gray-200"
-                          style={{
-                            top: `${(hour - 10) * hourHeight}px`,
-                            position: 'absolute',
-                            width: '100%',
-                          }}
-                        ></div>
-                      ))}
+                      {hours.map((hour) => {
+                        return [0, 20, 40].map((minute, idx) => (
+                          <div
+                            key={`${hour}-${minute}`}
+                            className={`border-b ${
+                              minute === 0 ? 'border-gray-300' : 'border-gray-200'
+                            }`}
+                            style={{
+                              top: `${(hour - 9.0699) * hourHeight + (minute * hourHeight) / 60}px`,
+                              position: 'absolute',
+                              width: '100%',
+                            }}
+                          ></div>
+                        ))
+                      })}
                     </div>
-
                     {/* Time indicator line for department view */}
                     <div
                       className="absolute left-0 right-0 border-t-2 border-red-500 z-10"
@@ -590,7 +600,6 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         <Stopwatch color="#ea384c" />
                       </div>
                     </div>
-
                     {/* Employee columns for department view */}
                     {department.employees.map((emp) => (
                       <div
@@ -635,16 +644,18 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     }}
                                     handleViewDetails={handleViewDetails}
                                   />
-                                  <Trash2
-                                    size={19}
-                                    className="absolute top-4 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={() => handleDeleteClick(task)}
-                                  />
-                                  <Pencil
-                                    size={19}
-                                    className="absolute top-[5rem] right-3 cursor-pointer text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={() => handleEditClick(task)}
-                                  />
+                                  <div className='flex'>
+                                    <Trash2
+                                      size={12}
+                                      className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      onClick={() => handleDeleteClick(task)}
+                                    />
+                                    <Pencil
+                                      size={12}
+                                      className="absolute top-[1.5rem] right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      onClick={() => handleEditClick(task)}
+                                    />
+                                  </div>
                                 </div>
                               )
                             })}

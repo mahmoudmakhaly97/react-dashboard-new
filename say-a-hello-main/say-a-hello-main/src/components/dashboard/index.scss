@@ -43,3 +43,12 @@
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.hour-marker {
+  &-major {
+    border-bottom: 1px solid #ccc;
+  }
+  &-minor {
+    border-bottom: 1px solid #eee;
+  }
+}

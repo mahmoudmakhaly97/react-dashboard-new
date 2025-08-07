@@ -33,12 +33,12 @@ const TaskCard: React.FC<{
     <>
       <div>
         <div
-          className={` rounded-md p-3 mb-3 cursor-pointer h-[7rem]  TaskCard ${getBgColor()}`}
+          className={` rounded-md p-3 mb-3 cursor-pointer h-[2.4rem] border border-gray-300 TaskCard ${getBgColor()}`}
           onClick={handleClick}
         >
           <div className="flex items-center gap-3">
             {' '}
-            {employee ? (
+            {/* {employee ? (
               <div className="flex align-center ">
                 {' '}
                 <Avatar className="h-6 w-6 mr-2 mb-2">
@@ -56,11 +56,11 @@ const TaskCard: React.FC<{
                 </div>
                 <span className="text-xs font-medium">{employee?.name} </span>
               </div>
-            )}
+            )} */}
           </div>{' '}
-          <div className="text-sm font-medium">{task.title}</div>
-          <div className="text-xs mt-1">{task.time}</div>
-          {task.assignees && task.assignees.length > 0 && (
+          {/* <div className="text-sm font-medium">{task.title}</div> */}
+          <div className="text-xs ">{task.time}</div>
+          {/* {task.assignees && task.assignees.length > 0 && (
             <div className="flex mt-2">
               {task.assignees.map((assignee, index) => (
                 <div
@@ -75,12 +75,12 @@ const TaskCard: React.FC<{
                       className="w-full h-full rounded-full"
                     />
                   ) : (
-                    assignee.name.substring(0, 1)
+                    ''
                   )}
                 </div>
               ))}
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </>

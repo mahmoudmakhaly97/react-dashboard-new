@@ -239,7 +239,7 @@ const TasksContent = () => {
       console.error('Invalid task object received for deletion:', task)
       return
     }
- 
+
     // Check if task is in past
     if (isTaskInPast(task.date)) {
       showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
@@ -272,8 +272,6 @@ const TasksContent = () => {
 
       // Force refresh while maintaining selection
       dashboardRef.current.refresh()
-
-
     } catch (error) {
       console.error('Failed to delete task:', error)
       setModalMessage(error.message || 'Failed to delete task. Please try again.')
@@ -511,107 +509,184 @@ const TasksContent = () => {
   }
 
   // Enhanced handleSubmit with employee selection preservation - KEEP SELECTED EMPLOYEE VIEW
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Replace your handleSubmit function with this version that includes better debugging:
 
+  // Replace your handleSubmit function with this corrected version:
 
-    try {
-      const selectedDate = dashboardRef.current?.getSelectedDate?.() || new Date()
-      const validation = validateTaskDateTime(selectedDate, formData.startTime, false)
-      if (!validation.isValid) {
-        setTooltipMessage(validation.message)
+ // Replace your handleSubmit function with this version that checks the task's start time:
+
+const handleSubmit = async (e) => {
+  e.preventDefault()
+
+  try {
+    const selectedDate = dashboardRef.current?.getSelectedDate?.() || new Date()
+    const validation = validateTaskDateTime(selectedDate, formData.startTime, false)
+    if (!validation.isValid) {
+      setTooltipMessage(validation.message)
+      setTooltipOpen(true)
+      setTimeout(() => setTooltipOpen(false), 4000)
+      setShouldMaintainSelection(false)
+      return
+    }
+
+    if (!formData.startTime || !formData.slotCount || formData.slotCount <= 0) {
+      setModalMessage('Start time and slot count are required and must be valid')
+      setModalMessageVisible(true)
+      setShouldMaintainSelection(false)
+      return
+    }
+
+    // Parse the task's start time to check if it's after 6 PM
+    const parseTaskStartTime = (timeStr) => {
+      if (!timeStr) return { hour: 0, minute: 0 }
+
+      // Handle different time formats
+      if (timeStr.includes(' ')) {
+        // Format: "11:20 PM" or "6:30 AM"
+        const [timePart, period] = timeStr.split(' ')
+        const [hoursStr, minutesStr = '0'] = timePart.split(':')
+        let hours = parseInt(hoursStr, 10)
+        const minutes = parseInt(minutesStr, 10)
+
+        if (period.toUpperCase() === 'PM' && hours < 12) hours += 12
+        if (period.toUpperCase() === 'AM' && hours === 12) hours = 0
+
+        return { hour: hours, minute: minutes }
+      } else {
+        // Format: "23:20" or "18:30"
+        const [hoursStr, minutesStr = '0'] = timeStr.split(':')
+        const hours = parseInt(hoursStr, 10)
+        const minutes = parseInt(minutesStr, 10)
+
+        return { hour: hours, minute: minutes }
+      }
+    }
+
+    const taskStartTime = parseTaskStartTime(formData.startTime)
+    const isTaskAfter6PM = taskStartTime.hour >= 18 // 18:00 = 6 PM
+
+    // Detailed logging for debugging
+    console.log('=== TASK START TIME CHECK ===')
+    console.log('Task Start Time String:', formData.startTime)
+    console.log('Parsed Task Hour:', taskStartTime.hour)
+    console.log('Parsed Task Minute:', taskStartTime.minute)
+    console.log('Is Task Start Time After 6 PM (18:00)?:', isTaskAfter6PM)
+    console.log('==============================')
+
+    const convertToEgyptISOTime = (timeStr, date = selectedDate) => {
+      if (!timeStr || !date) return null
+
+      const [timePart, period] = timeStr.includes(' ') ? timeStr.split(' ') : [timeStr, null]
+      const [hoursStr, minutesStr = '0'] = timePart.split(':')
+      let hours = parseInt(hoursStr, 10)
+      const minutes = parseInt(minutesStr, 10)
+
+      if (period === 'PM' && hours < 12) hours += 12
+      if (period === 'AM' && hours === 12) hours = 0
+
+      const dateObj = new Date(date)
+      dateObj.setHours(hours, minutes, 0, 0)
+      const tzOffset = dateObj.getTimezoneOffset() * 60000
+      return new Date(dateObj.getTime() - tzOffset).toISOString()
+    }
+
+    const apiData = {
+      id: 0,
+      title: formData.title,
+      description: formData.description,
+      assignedToEmployeeId: Number(formData.assignedToEmployeeId || selectedEmployee?.id),
+      createdByEmployeeId: Number(formData.createdByEmployeeId),
+      updatedByEmployeeId: Number(formData.updatedByEmployeeId || formData.createdByEmployeeId),
+      departmentId: Number(formData.departmentId || selectedEmployee?.departmentId || 0),
+      slotCount: Math.max(1, Number(formData.slotCount)),
+      startTime: convertToEgyptISOTime(formData.startTime, selectedDate),
+      endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime, selectedDate) : null,
+      createdAt: new Date().toISOString(),
+      clientId: formData.clientId,
+      needsApproval: isTaskAfter6PM, // Based on task start time, not current time
+      status: isTaskAfter6PM ? 'Pending' : 'Approved', // Based on task start time
+    }
+
+    console.log('=== API DATA DEBUG ===')
+    console.log('needsApproval:', apiData.needsApproval)
+    console.log('status:', apiData.status)
+    console.log('Task Start Time (ISO):', apiData.startTime)
+    console.log('=====================')
+
+    const response = await fetch(`${BASE_URL}/Tasks/CreateTask`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authTasks.token}`,
+      },
+      body: JSON.stringify(apiData),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      
+      if (errorText.includes('Time slot conflict') || errorText.includes('overlaps')) {
+        setTooltipMessage(
+          'Oops! This time slot overlaps with an existing task. Please choose a different time.',
+        )
         setTooltipOpen(true)
         setTimeout(() => setTooltipOpen(false), 4000)
         setShouldMaintainSelection(false)
         return
       }
-
-      const convertToEgyptISOTime = (timeStr, date = selectedDate) => {
-        if (!timeStr || !date) return null
-
-        const [timePart, period] = timeStr.includes(' ') ? timeStr.split(' ') : [timeStr, null]
-        const [hoursStr, minutesStr = '0'] = timePart.split(':')
-        let hours = parseInt(hoursStr, 10)
-        const minutes = parseInt(minutesStr, 10)
-
-        if (period === 'PM' && hours < 12) hours += 12
-        if (period === 'AM' && hours === 12) hours = 0
-
-        const dateObj = new Date(date)
-        dateObj.setHours(hours, minutes, 0, 0)
-        const tzOffset = dateObj.getTimezoneOffset() * 60000
-        return new Date(dateObj.getTime() - tzOffset).toISOString()
-      }
-
-      if (!formData.startTime || !formData.slotCount || formData.slotCount <= 0) {
-        setModalMessage('Start time and slot count are required and must be valid')
-        setModalMessageVisible(true)
-        setShouldMaintainSelection(false)
-        return
-      }
-
-      const apiData = {
-        id: 0,
-        title: formData.title,
-        description: formData.description,
-        assignedToEmployeeId: Number(formData.assignedToEmployeeId || selectedEmployee?.id),
-        createdByEmployeeId: Number(formData.createdByEmployeeId),
-        updatedByEmployeeId: Number(formData.updatedByEmployeeId || formData.createdByEmployeeId),
-        departmentId: Number(formData.departmentId || selectedEmployee?.departmentId || 0),
-        slotCount: Math.max(1, Number(formData.slotCount)),
-        startTime: convertToEgyptISOTime(formData.startTime, selectedDate),
-        endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime, selectedDate) : null,
-        createdAt: new Date().toISOString(),
-        clientId: formData.clientId,
-        needsApproval: formData.needsApproval || false,
-        status: formData.status || 'Approved',
-      }
-
-      const response = await fetch(`${BASE_URL}/Tasks/CreateTask`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authTasks.token}`,
-        },
-        body: JSON.stringify(apiData),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        if (errorText.includes('Time slot conflict') || errorText.includes('overlaps')) {
-          setTooltipMessage(
-            'Oops! This time slot overlaps with an existing task. Please choose a different time.',
-          )
-          setTooltipOpen(true)
-          setTimeout(() => setTooltipOpen(false), 4000)
-          setShouldMaintainSelection(false)
-          return
-        }
-        setModalMessage(`Error creating task: ${errorText || 'Unknown error'}`)
-        setModalMessageVisible(true)
-        setShouldMaintainSelection(false)
-        return
-      }
-
-      // Success case
-      setModalMessage('Task created successfully.')
+      setModalMessage(`Error creating task: ${errorText || 'Unknown error'}`)
       setModalMessageVisible(true)
-      toggle()
-      setTaskCreated(true)
-     dashboardRef.current?.refresh();
-  
-
-      resetFormData()
-      await fetchData()
-    } catch (error) {
-      console.error('Error submitting task:', error)
-      setTooltipMessage('Oops! Something went wrong. Please try again.')
-      setTooltipOpen(true)
-      setTimeout(() => setTooltipOpen(false), 4000)
       setShouldMaintainSelection(false)
+      return
     }
+
+    const responseData = await response.json()
+
+    // Success case - show different message based on task start time
+    if (isTaskAfter6PM) {
+      console.log('🔄 Setting PENDING approval message (Task scheduled after 6 PM)')
+      setModalMessage('Your request is pending and waiting for manager approval.')
+    } else {
+      console.log('✅ Setting SUCCESS message (Task scheduled before 6 PM)')  
+      setModalMessage('Task created successfully.')
+    }
+    
+    setModalMessageVisible(true)
+    toggle()
+    setTaskCreated(true)
+    dashboardRef.current?.refresh()
+
+    resetFormData()
+    await fetchData()
+  } catch (error) {
+    console.error('Error submitting task:', error)
+    setTooltipMessage('Oops! Something went wrong. Please try again.')
+    setTooltipOpen(true)
+    setTimeout(() => setTooltipOpen(false), 4000)
+    setShouldMaintainSelection(false)
+  }
+}
+
+  // Alternative simple method if the above still doesn't work:
+  const getEgyptHour = () => {
+    const now = new Date()
+
+    // Get current UTC hour
+    const utcHour = now.getUTCHours()
+
+    // Egypt is UTC+2 (Standard Time) or UTC+3 (Daylight Saving Time)
+    // For simplicity, let's assume UTC+2 (you can adjust if needed)
+    const egyptHour = (utcHour + 2) % 24
+
+    console.log('UTC Hour:', utcHour)
+    console.log('Egypt Hour (UTC+2):', egyptHour)
+
+    return egyptHour
   }
 
+  // You can also use this simple version in your handleSubmit:
+  // const egyptHour = getEgyptHour()
+  // const isAfter6PM = egyptHour >= 18
   useEffect(() => {
     if (taskCreated) {
       fetchData()
@@ -1381,10 +1456,14 @@ const TasksContent = () => {
           centered
         >
           <div className="d-flex flex-column justify-content-center align-items-center gap-3 p-4">
-            <img src={check} width={70} height={70} alt="success" />
+            {modalMessage === 'Your request is pending and waiting for manager approval.' ? (
+              <img src={pending} width={70} height={70} alt="pending" />
+            ) : (
+              <img src={check} width={70} height={70} alt="success" />
+            )}
             <h4 className="text-center">{modalMessage}</h4>
             <Button color="primary" onClick={() => setModalMessageVisible(false)}>
-              OK{' '}
+              OK
             </Button>
           </div>
         </ModalMaker>
@@ -1400,24 +1479,26 @@ const TasksContent = () => {
           {errorEditModalMessage}
         </UncontrolledTooltip>
       )}
-
-      {modalMessageVisible &&
-        modalMessage === 'Your request is pending and waiting for manager approval.' && (
-          <ModalMaker
-            size="md"
-            modal={modalMessageVisible}
-            toggle={() => setModalMessageVisible(false)}
-            centered
-          >
-            <div className="d-flex flex-column justify-content-center align-items-center gap-3 p-4">
-              <img src={pending} width={70} height={70} alt="success" />
-              <h4 className="text-center">{modalMessage}</h4>
-              <Button color="primary" onClick={() => setModalMessageVisible(false)}>
-                OK{' '}
-              </Button>
-            </div>
-          </ModalMaker>
-        )}
+      {modalMessageVisible && (
+        <ModalMaker
+          size="md"
+          modal={modalMessageVisible}
+          toggle={() => setModalMessageVisible(false)}
+          centered
+        >
+          <div className="d-flex flex-column justify-content-center align-items-center gap-3 p-4">
+            {modalMessage === 'Your request is pending and waiting for manager approval.' ? (
+              <img src={pending} width={70} height={70} alt="pending" />
+            ) : (
+              <img src={check} width={70} height={70} alt="success" />
+            )}
+            <h4 className="text-center">{modalMessage}</h4>
+            <Button color="primary" onClick={() => setModalMessageVisible(false)}>
+              OK
+            </Button>
+          </div>
+        </ModalMaker>
+      )}
 
       <ModalMaker modal={deleteModal} toggle={toggleDeleteModal} centered size="md">
         <div className="p-4 text-center">
