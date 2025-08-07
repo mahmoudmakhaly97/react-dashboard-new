@@ -629,7 +629,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                   key={taskIndex}
                                   className="absolute mx-1 group TaskCard"
                                   style={{
-                                    top: `${top * 1.04}px`,
+                                    top: `${top *1.001}px`,
                                     height: `${height}px`,
                                     minHeight: '40px',
                                     width: 'calc(100% - 8px)',
