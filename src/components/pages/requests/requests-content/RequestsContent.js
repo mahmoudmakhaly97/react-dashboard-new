@@ -28,36 +28,14 @@ const RequestsContent = () => {
     <div className="requests">
       <h3 className="text-2xl font-medium mb-4">Requests</h3>
 
-      {/* <Row className="g-3">
-        <Col sm="6" lg="4">
-          <Card body>
-            <CardTitle tag="h5">Special Title Treatment</CardTitle>
-            <CardText className="my-3">
-              With supporting text below as a natural lead-in to additional content.
-            </CardText>
-            <div className="d-flex  gap-3">
-              <Button color="danger" className="flex-1 text-white">
-                Decline
-              </Button>
-              <Button
-                color="success"
-                className="flex-1 text-white d-flex align-items-center justify-center gap-2"
-              >
-                {' '}
-                Accept <Check size={20} />
-              </Button>
-            </div>
-          </Card>
-        </Col>
-      </Row> */}
       <Row>
-        <Col sm="6" lg="4">
-          <Alert color="success" className="border-0 mb-0">
+        <Col sm="6" lg="6">
+          <Alert color="secondary" className="border-0 mb-0">
             <div className="d-flex justify-content-between align-items-center">
               <div>scsc</div>
               <div className="d-flex gap-2">
-                <Check size={20} className="pointer" />
-                <X size={20} className="pointer" />
+                <Check size={20} className="pointer" color="green" />
+                <X size={20} className="pointer" color="red" />
               </div>
             </div>
           </Alert>
