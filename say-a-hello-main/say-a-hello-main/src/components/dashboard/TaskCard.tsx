@@ -13,6 +13,7 @@ const TaskCard: React.FC<{
   const [isOpen, setIsOpen] = useState(false)
   const [taskDetails, setTaskDetails] = useState<Task | null>(null)
   const [client, setClient] = useState<any>(null)
+  const authTasks = JSON.parse(localStorage.getItem('authData'))
 
   const getBgColor = () => {
     switch (task.color) {
@@ -43,7 +44,7 @@ const TaskCard: React.FC<{
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibWFobW91ZG1ha2hhbHkxMjNAZ21haWwuY29tIiwianRpIjoiNWI2OGUyMGQtODk4Zi00NWY0LTlkZDQtOTM2MTBiMjUxOGQyIiwiZXhwIjoxNzU0ODk1NDQ3LCJpc3MiOiJBdHRlbmRhbmNlQXBwIiwiYXVkIjoiQXR0ZW5kYW5jZUFwaVVzZXIifQ.hJ8bMe_zkLQfFRglBT4Mwc7XlA48Zd67UVxEp8SJi4U`,
+              Authorization: `Bearer ${authTasks.token}`,
             },
           },
         )
@@ -75,7 +76,7 @@ const TaskCard: React.FC<{
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibWFobW91ZG1ha2hhbHkxMjNAZ21haWwuY29tIiwianRpIjoiNWI2OGUyMGQtODk4Zi00NWY0LTlkZDQtOTM2MTBiMjUxOGQyIiwiZXhwIjoxNzU0ODk1NDQ3LCJpc3MiOiJBdHRlbmRhbmNlQXBwIiwiYXVkIjoiQXR0ZW5kYW5jZUFwaVVzZXIifQ.hJ8bMe_zkLQfFRglBT4Mwc7XlA48Zd67UVxEp8SJi4U`,
+              Authorization: `Bearer ${authTasks.token}`,
             },
           },
         )

@@ -142,7 +142,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           }),
         {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibWFobW91ZG1ha2hhbHkxMjNAZ21haWwuY29tIiwianRpIjoiNWI2OGUyMGQtODk4Zi00NWY0LTlkZDQtOTM2MTBiMjUxOGQyIiwiZXhwIjoxNzU0ODk1NDQ3LCJpc3MiOiJBdHRlbmRhbmNlQXBwIiwiYXVkIjoiQXR0ZW5kYW5jZUFwaVVzZXIifQ.hJ8bMe_zkLQfFRglBT4Mwc7XlA48Zd67UVxEp8SJi4U  `,
+            Authorization: `Bearer ${authTasks.token}  `,
           },
         },
       )
@@ -542,13 +542,13 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     left: '0px',
                                   }}
                                 >
-                               <div  className='task-card-container'>
-                                   <TaskCard
-                                    task={task}
-                                    employee={employee}
-                                    handleViewDetails={handleViewDetails}
-                                  />
-                               </div>
+                                  <div className="task-card-container">
+                                    <TaskCard
+                                      task={task}
+                                      employee={employee}
+                                      handleViewDetails={handleViewDetails}
+                                    />
+                                  </div>
                                   <Trash2
                                     size={12}
                                     className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -631,7 +631,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                   key={taskIndex}
                                   className="absolute mx-1 group TaskCard"
                                   style={{
-                                    top: `${top *1.001}px`,
+                                    top: `${top * 1.001}px`,
                                     height: `${height}px`,
                                     minHeight: '40px',
                                     width: 'calc(100% - 8px)',
@@ -646,7 +646,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     }}
                                     handleViewDetails={handleViewDetails}
                                   />
-                                  <div className='flex'>
+                                  <div className="flex">
                                     <Trash2
                                       size={12}
                                       className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
