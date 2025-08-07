@@ -95,7 +95,7 @@
   svg {
     &:first-of-type {
       opacity: 0 !important;
-      top: 22px!important;
+      top: 22px !important;
     }
     &:last-of-type {
       opacity: 0 !important;
@@ -104,7 +104,6 @@
       top: 0.3em !important;
       width: 12px;
       height: 12px;
-    
     }
   }
   &:hover {
@@ -200,4 +199,26 @@ div#radix-\:ri\: {
   right: 50%;
   min-width: 400px;
   transform: translate(100%, -50%);
+}
+.task-card-container {
+  position: absolute;
+
+  bottom: 17px;
+}
+.task-card-container + svg {
+  top: -13px !important;
+}
+.group-weekly {
+  svg {
+    &:last-of-type {
+      opacity: 0 !important;
+      top: 7px !important;
+    }
+  }
+  svg {
+    &:first-of-type {
+      opacity: 0 !important;
+      top: -13px !important;
+    }
+  }
 }
