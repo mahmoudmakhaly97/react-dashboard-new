@@ -570,7 +570,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
                 {/* Show department view only if not showing employee or My Tasks */}
                 {!employee && !showOnlyMyTasks && department && department.employees && (
-                  <div className="flex">
+                  <div className="flex" key={`daily-view-${tasks.length}`}>
                     {/* Hour markers for department view */}
                     {/* Hour markers for department view */}
                     <div className="absolute left-0 right-0 h-full pointer-events-none">
