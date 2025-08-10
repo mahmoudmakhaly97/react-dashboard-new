@@ -1661,7 +1661,13 @@ const TasksContent = () => {
             {' '}
             <span className="font-semibold"> Assigned To : </span>
             {taskToView?.assignedToEmployeeName}
-          </span>{' '}
+          </span>
+          {taskToView?.updatedByEmployeeName && (
+            <span>
+              <span className="font-semibold">Edit By : </span>
+              {taskToView?.updatedByEmployeeName}
+            </span>
+          )}
           <br />
           <span>
             {' '}

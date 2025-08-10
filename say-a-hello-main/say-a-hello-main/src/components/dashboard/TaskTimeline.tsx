@@ -339,6 +339,25 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
     return { top: topPosition, height: heightInMinutes }
   }
+  // Helper function to calculate task duration in minutes
+  const calculateTaskDuration = (task) => {
+    const timeToMinutes = (timeStr) => {
+      const [time, period] = timeStr.split(' ')
+      let [hours, minutes] = time.split(':').map(Number)
+
+      if (period === 'PM' && hours !== 12) hours += 12
+      if (period === 'AM' && hours === 12) hours = 0
+
+      return hours * 60 + minutes
+    }
+
+    const startMinutes = timeToMinutes(task.time)
+    const endMinutes = timeToMinutes(task.endTime)
+
+    return endMinutes - startMinutes
+  }
+
+  // Helper function to get pencil top position based on duration
 
   const calculateStopwatchPosition = () => {
     const startHour = 10
@@ -529,12 +548,13 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                             )
                             .map((task, taskIndex) => {
                               const { top, height } = calculateTaskPosition(task)
+                              const taskDuration = calculateTaskDuration(task)
                               return (
                                 <div
                                   key={taskIndex}
-                                  className="absolute mx-1 group group-weekly TaskCard"
+                                  className="absolute mx-1 group   TaskCard"
                                   style={{
-                                    top: `${top}px`,
+                                    top: `${top - 15}px`,
                                     height: `${height}px`,
                                     minHeight: '40px',
                                     maxHeight: '200px',
@@ -542,24 +562,25 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     left: '0px',
                                   }}
                                 >
-                                  <div className="task-card-container">
-                                    <TaskCard
-                                      task={task}
-                                      employee={employee}
-                                      handleViewDetails={handleViewDetails}
+                                  <TaskCard
+                                    task={task}
+                                    employee={employee}
+                                    handleViewDetails={handleViewDetails}
+                                  />
+                                  <div className="flex absolute right-0 top-[0.2rem]">
+                                    <Trash2
+                                      size={12}
+                                      className="absolute  right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      onClick={() => handleDeleteClick(task)}
+                                    />
+                                    <Pencil
+                                      size={5}
+                                      className="absolute  top-[1.5rem]   right-3 cursor-pointer  text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      onClick={() => handleEditClick(task)}
                                     />
                                   </div>
-                                  <Trash2
-                                    size={12}
-                                    className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={() => handleDeleteClick(task)}
-                                  />
-                                  <Pencil
-                                    size={5}
-                                    className="absolute top-[1.5rem] right-3 cursor-pointer  text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    onClick={() => handleEditClick(task)}
-                                  />
                                 </div>
+                                // no
                               )
                             })}
                         </div>
@@ -626,6 +647,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                             )
                             .map((task, taskIndex) => {
                               const { top, height } = calculateTaskPosition(task)
+                              const taskDuration = calculateTaskDuration(task)
+
                               return (
                                 <div
                                   key={taskIndex}
@@ -646,7 +669,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     }}
                                     handleViewDetails={handleViewDetails}
                                   />
-                                  <div className="flex">
+                                  <div className="flex ">
                                     <Trash2
                                       size={12}
                                       className="absolute top-1 right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -654,7 +677,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     />
                                     <Pencil
                                       size={12}
-                                      className="absolute top-[1.5rem] right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      className="absolute top-[1.5rem]   right-3 cursor-pointer text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                       onClick={() => handleEditClick(task)}
                                     />
                                   </div>

@@ -95,7 +95,7 @@ const TaskCard: React.FC<{
 
   return (
     <>
-      <div>
+      <div className="w-full">
         <div
           className={`rounded-md p-3 mb-3 cursor-pointer   border border-gray-300 TaskCard ${getBgColor()}`}
           onClick={handleClick}
