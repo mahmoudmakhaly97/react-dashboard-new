@@ -345,7 +345,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const currentHour = currentTime.getHours()
     const currentMinute = currentTime.getMinutes()
 
-    const totalMinutes = currentHour * 60 + currentMinute - startHour * 60 + 60
+    const totalMinutes = currentHour * 58.6 + currentMinute - startHour * 60 + 60
     const pixelsPerMinute = hourHeight / 60
 
     return Math.max(0, totalMinutes * pixelsPerMinute)
@@ -491,7 +491,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         marginTop: '-1px',
                       }}
                     >
-                      <div className="absolute -top-3">
+                      <div className="absolute -top-3 bg-primary">
                         <Stopwatch color="#ea384c" />
                       </div>
                     </div>

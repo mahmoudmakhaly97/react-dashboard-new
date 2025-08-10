@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MessageSquareX, User, X } from 'lucide-react'
+import { BASE_URL } from './../../api/base'
 
 const TaskCard: React.FC<{
   task: Task
@@ -38,16 +39,13 @@ const TaskCard: React.FC<{
   useEffect(() => {
     const getTaskDetails = async () => {
       try {
-        const response = await fetch(
-          `https://attendance-service.5d-dev.com/api/Tasks/GetTaskById/${task.id}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${authTasks.token}`,
-            },
+        const response = await fetch(`${BASE_URL}/Tasks/GetTaskById/${task.id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authTasks.token}`,
           },
-        )
+        })
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -70,16 +68,13 @@ const TaskCard: React.FC<{
     const getClient = async () => {
       try {
         // Fixed URL: removed duplicate 'api' and added missing slash
-        const response = await fetch(
-          `https://attendance-service.5d-dev.com/api/Clients/GetClientById${taskDetails?.clientId}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${authTasks.token}`,
-            },
+        const response = await fetch(`${BASE_URL}/Clients/GetClientById${taskDetails?.clientId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authTasks.token}`,
           },
-        )
+        })
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

@@ -269,7 +269,6 @@ const TasksContent = () => {
       const data = await response.json()
       setModalMessage(data.message || 'Task deleted successfully')
       setModalMessageVisible(true)
-      setRefreshKey((prev) => prev + 1)
 
       // Force refresh while maintaining selection
       dashboardRef.current.refresh()
