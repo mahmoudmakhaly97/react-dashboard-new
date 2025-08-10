@@ -142,7 +142,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           }),
         {
           headers: {
-            Authorization: `Bearer ${authTasks.token}  `,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibmloYWwua2FtYWxANWQtYWdlbmN5LmNvbSIsImp0aSI6IjhkYmNjMjgyLWI5OTUtNDAxOS05MGU5LWY0NTgzY2E4ZDNmZSIsImV4cCI6MTc1NTI1MDMzNCwiaXNzIjoiQXR0ZW5kYW5jZUFwcCIsImF1ZCI6IkF0dGVuZGFuY2VBcGlVc2VyIn0.WEezDMsZA5tXzKY75XCeIaGScMaTwZJhg4WWE-ufdT0  `,
           },
         },
       )
@@ -471,7 +471,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                           <div
                             key={`${hour}-${minute}`}
                             className={`border-b ${
-                              minute === 0 ? 'border-gray-300' : 'border-gray-200'
+                              minute === 0 ? 'border-gray-400' : 'border-gray-200'
                             }`}
                             style={{
                               top: `${(hour - 9.28) * hourHeight + (minute * hourHeight) / 60}px`,
@@ -579,7 +579,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                           <div
                             key={`${hour}-${minute}`}
                             className={`border-b ${
-                              minute === 0 ? 'border-gray-300' : 'border-gray-200'
+                              minute === 0 ? 'border-gray-400' : 'border-gray-200'
                             }`}
                             style={{
                               top: `${(hour - 9.15) * hourHeight + (minute * hourHeight) / 60}px`,

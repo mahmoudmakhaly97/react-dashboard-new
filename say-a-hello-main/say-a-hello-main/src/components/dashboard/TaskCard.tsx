@@ -43,7 +43,7 @@ const TaskCard: React.FC<{
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${authTasks.token}`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibmloYWwua2FtYWxANWQtYWdlbmN5LmNvbSIsImp0aSI6IjhkYmNjMjgyLWI5OTUtNDAxOS05MGU5LWY0NTgzY2E4ZDNmZSIsImV4cCI6MTc1NTI1MDMzNCwiaXNzIjoiQXR0ZW5kYW5jZUFwcCIsImF1ZCI6IkF0dGVuZGFuY2VBcGlVc2VyIn0.WEezDMsZA5tXzKY75XCeIaGScMaTwZJhg4WWE-ufdT0`,
           },
         })
 
@@ -72,7 +72,7 @@ const TaskCard: React.FC<{
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${authTasks.token}`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibmloYWwua2FtYWxANWQtYWdlbmN5LmNvbSIsImp0aSI6IjhkYmNjMjgyLWI5OTUtNDAxOS05MGU5LWY0NTgzY2E4ZDNmZSIsImV4cCI6MTc1NTI1MDMzNCwiaXNzIjoiQXR0ZW5kYW5jZUFwcCIsImF1ZCI6IkF0dGVuZGFuY2VBcGlVc2VyIn0.WEezDMsZA5tXzKY75XCeIaGScMaTwZJhg4WWE-ufdT0`,
           },
         })
 
