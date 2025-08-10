@@ -233,7 +233,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const taskEmployeeIdStr = String(task.assignedToEmployeeId)
 
     // HR Managers can see all tasks
-    if (currentUserData.department === 'HR' && currentUserData.isManager) {
+    if (currentUserData.department === 'hr' && currentUserData.isManager) {
       return true
     }
 
@@ -345,7 +345,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const currentHour = currentTime.getHours()
     const currentMinute = currentTime.getMinutes()
 
-    const totalMinutes = currentHour * 58.6 + currentMinute - startHour * 60 + 60
+    const totalMinutes = currentHour * 59.4 + currentMinute - startHour * 60 + 60
     const pixelsPerMinute = hourHeight / 60
 
     return Math.max(0, totalMinutes * pixelsPerMinute)

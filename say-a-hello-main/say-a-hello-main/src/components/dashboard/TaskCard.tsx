@@ -97,8 +97,9 @@ const TaskCard: React.FC<{
     <>
       <div>
         <div
-          className={`rounded-md p-3 mb-3 cursor-pointer h-[2.4rem] border border-gray-300 TaskCard ${getBgColor()}`}
+          className={`rounded-md p-3 mb-3 cursor-pointer   border border-gray-300 TaskCard ${getBgColor()}`}
           onClick={handleClick}
+          style={{ height: `${2.4 * (taskDetails?.slotCount || 1)}rem` }}
         >
           <div className="flex items-center gap-3">
             {/* Employee info section - commented out as in original */}

@@ -31,6 +31,7 @@ export interface Task {
   left?: string
   color?: 'red' | 'green' | 'blue'
   date: Date
+  slotCount?: number
 }
 
 export interface Employee {
