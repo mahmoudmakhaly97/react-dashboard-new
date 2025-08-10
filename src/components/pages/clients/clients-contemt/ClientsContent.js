@@ -115,7 +115,6 @@ const ClientsContent = () => {
         // Extract employeeId from token
         const tokenData = parseJwt(authToken)
         const employeeId = tokenData?.id
-        console.log('Extracted employeeId:', employeeId)
 
         // First fetch user data to check HR status
         if (employeeId) {
@@ -127,7 +126,6 @@ const ClientsContent = () => {
               },
             },
           )
-          console.log('Employee data:', userResponse.data)
           setIsHR(userResponse.data?.department?.toLowerCase() === 'hr')
         }
 
@@ -190,8 +188,6 @@ const ClientsContent = () => {
           isActive: clientData.isActive,
         }
 
-        console.log('Update payload:', payload)
-
         await axios.post(`${BASE_URL}/Clients/UpdateClient/${editClientId}`, payload, {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -207,8 +203,6 @@ const ClientsContent = () => {
           clientCode: parseInt(clientData.code), // Ensure clientCode is number
           isActive: clientData.isActive,
         }
-
-        console.log('Create payload:', payload)
 
         await axios.post(`${BASE_URL}/Clients/CreateClient`, payload, {
           headers: {
@@ -257,11 +251,6 @@ const ClientsContent = () => {
     try {
       setIsLoading(true)
 
-      // Debug logs
-      console.log('Auth token:', authToken ? 'Present' : 'Missing')
-      console.log('Delete URL:', `${BASE_URL}/Clients/DeleteClient/${clientToDelete.id}`)
-      console.log('Client to delete:', clientToDelete)
-
       // Make the delete request with proper headers
       const response = await axios.post(
         `${BASE_URL}/Clients/DeleteClient/${clientToDelete.id}`,
@@ -308,7 +297,6 @@ const ClientsContent = () => {
   }
 
   const handleEditClient = (client) => {
-    console.log('Editing client:', client)
     setClientData({
       name: client.name,
       code: client.clientCode.toString(),

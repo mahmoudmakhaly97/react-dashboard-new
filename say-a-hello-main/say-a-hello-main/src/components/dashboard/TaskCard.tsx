@@ -93,9 +93,6 @@ const TaskCard: React.FC<{
     }
   }, [taskDetails?.clientId])
 
-  console.log('taskDetails', taskDetails)
-  console.log('client', client) // Add this for debugging
-
   return (
     <>
       <div>

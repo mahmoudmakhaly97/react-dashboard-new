@@ -190,10 +190,8 @@ const TasksContent = () => {
         }
 
         const data = await response.json()
-        console.log('Manager Team Data:', data)
 
         const teamMembers = Array.isArray(data) ? data : data.employees || []
-        console.log('Team Members:', teamMembers)
         setManagerTeam(teamMembers)
       } catch (error) {
         console.error('Error fetching manager team:', error)
@@ -271,7 +269,7 @@ const TasksContent = () => {
       setModalMessageVisible(true)
 
       // Force refresh while maintaining selection
-      dashboardRef.current.refresh()
+      dashboardRef.current?.refresh()
     } catch (error) {
       console.error('Failed to delete task:', error)
       setModalMessage(error.message || 'Failed to delete task. Please try again.')
@@ -292,8 +290,6 @@ const TasksContent = () => {
 
   // Updated handleTaskDeleted function
   const handleTaskDeleted = (task) => {
-    console.log('Task object received:', task)
-
     if (!task || !task.id) {
       console.error('Invalid task object received:', task)
       setErrorEditModalMessage('Invalid task data')
@@ -309,7 +305,6 @@ const TasksContent = () => {
     }
 
     if (isTaskInPast(task.date)) {
-      console.log('Attempt to delete past task detected')
       showPastTaskTooltip('Cannot delete tasks from previous days.', 'dashboard-container')
       return
     }
@@ -565,14 +560,6 @@ const TasksContent = () => {
       const taskStartTime = parseTaskStartTime(formData.startTime)
       const isTaskAfter6PM = taskStartTime.hour >= 18 // 18:00 = 6 PM
 
-      // Detailed logging for debugging
-      console.log('=== TASK START TIME CHECK ===')
-      console.log('Task Start Time String:', formData.startTime)
-      console.log('Parsed Task Hour:', taskStartTime.hour)
-      console.log('Parsed Task Minute:', taskStartTime.minute)
-      console.log('Is Task Start Time After 6 PM (18:00)?:', isTaskAfter6PM)
-      console.log('==============================')
-
       const convertToEgyptISOTime = (timeStr, date = selectedDate) => {
         if (!timeStr || !date) return null
 
@@ -607,12 +594,6 @@ const TasksContent = () => {
         status: isTaskAfter6PM ? 'Pending' : 'Approved', // Based on task start time
       }
 
-      console.log('=== API DATA DEBUG ===')
-      console.log('needsApproval:', apiData.needsApproval)
-      console.log('status:', apiData.status)
-      console.log('Task Start Time (ISO):', apiData.startTime)
-      console.log('=====================')
-
       const response = await fetch(`${BASE_URL}/Tasks/CreateTask`, {
         method: 'POST',
         headers: {
@@ -644,10 +625,8 @@ const TasksContent = () => {
 
       // Success case - show different message based on task start time
       if (isTaskAfter6PM) {
-        console.log('🔄 Setting PENDING approval message (Task scheduled after 6 PM)')
         setModalMessage('Your request is pending and waiting for manager approval.')
       } else {
-        console.log('✅ Setting SUCCESS message (Task scheduled before 6 PM)')
         setModalMessage('Task created successfully.')
       }
 
@@ -678,9 +657,6 @@ const TasksContent = () => {
     // For simplicity, let's assume UTC+2 (you can adjust if needed)
     const egyptHour = (utcHour + 2) % 24
 
-    console.log('UTC Hour:', utcHour)
-    console.log('Egypt Hour (UTC+2):', egyptHour)
-
     return egyptHour
   }
 
@@ -696,8 +672,6 @@ const TasksContent = () => {
 
   const handleEditTask = async (taskId) => {
     try {
-      console.log('Fetching task with ID:', taskId)
-
       const response = await fetch(`${BASE_URL}/Tasks/GetTaskById/${taskId.id}`, {
         headers: {
           Authorization: `Bearer ${authTasks.token}`,
@@ -715,7 +689,6 @@ const TasksContent = () => {
       }
 
       const taskData = await response.json()
-      console.log('Task Data Received:', taskData)
 
       if (taskData.status === 'Completed') {
         setModalMessage('This task is already completed and cannot be edited.')
@@ -773,7 +746,6 @@ const TasksContent = () => {
 
     const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate())
 
-    console.log('Comparing dates - Today:', today, 'Task date:', taskDay)
     return taskDay < today
   }
 
@@ -1181,7 +1153,7 @@ const TasksContent = () => {
       }
 
       const taskDetails = await response.json()
-      console.log('taskDetails', taskDetails)
+
       setTaskToView(taskDetails)
       setViewModal(true)
     } catch (error) {

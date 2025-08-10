@@ -11,7 +11,6 @@ const Requests = () => {
       try {
         const response = await axios.get(`${BASE_URL}/Tasks/pending`)
         setPendingRequests(response.data)
-        console.log('Pending Requests:', response.data)
       } catch (error) {
         console.error('Error fetching pending requests:', error)
       }
