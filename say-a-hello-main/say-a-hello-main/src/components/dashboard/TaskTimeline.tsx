@@ -324,7 +324,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const isPM = task.time.toLowerCase().includes('pm')
 
     const hourIn24 = isPM && hour !== 12 ? hour + 12 : hour === 12 && !isPM ? 0 : hour
-    const topPosition = (hourIn24 - 9.39) * hourHeight + (minute * hourHeight) / 60
+    const topPosition = (hourIn24 - 9.38) * hourHeight + (minute * hourHeight) / 60
 
     let heightInMinutes = hourHeight // Default to 1 hour height
     if (task.endTime) {
