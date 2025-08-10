@@ -1025,6 +1025,7 @@ const TasksContent = () => {
 
     return false
   }
+  // In TasksContent.tsx
   const checkTaskPermissions = (currentUser, targetEmployeeId) => {
     if (!currentUser) return { canAddTask: false, canViewTask: false, canViewAll: false }
 
@@ -1033,7 +1034,7 @@ const TasksContent = () => {
     const targetId = String(targetEmployeeId)
 
     // HR can do anything
-    if (currentUser.department === 'hr') {
+    if (currentUser.department === 'hr' && currentUser.isManager) {
       return { canAddTask: true, canViewTask: true, canViewAll: true }
     }
 
@@ -1063,37 +1064,41 @@ const TasksContent = () => {
       canViewAll: false,
     }
   }
+  // In TasksContent.tsx
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchCurrentUserData = async () => {
       try {
-        // Fetch user data
-        const userResponse = await fetch(
-          `${BASE_URL}/Employee/GetEmployeeWithId?id=${currentUserId}`,
-          {
-            headers: { Authorization: `Bearer ${authToken}` },
+        const response = await fetch(`${BASE_URL}/Employee/GetEmployeeWithId?id=${currentUserId}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
           },
-        )
-        const userData = await userResponse.json()
+        })
+        const data = await response.json()
+        setCurrentUser(data)
 
         // If user is manager, fetch their team
-        if (userData.isManager) {
+        if (data.isManager) {
           const teamResponse = await fetch(`${BASE_URL}/Employee/GetManagerTeam`, {
-            headers: { Authorization: `Bearer ${authToken}` },
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
           })
           const teamData = await teamResponse.json()
-          userData.managerTeam = teamData
+          setCurrentUser((prev) => ({
+            ...prev,
+            managerTeam: teamData,
+          }))
         }
-
-        setCurrentUser(userData)
       } catch (error) {
         console.error('Error fetching user data:', error)
       }
     }
 
     if (currentUserId) {
-      fetchUserData()
+      fetchCurrentUserData()
     }
   }, [currentUserId, authToken])
+  // In TasksContent.tsx
   const renderAddTaskButton = () => {
     if (!selectedEmployee || !currentUser) return null
 

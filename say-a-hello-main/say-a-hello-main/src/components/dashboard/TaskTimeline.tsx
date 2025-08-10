@@ -225,6 +225,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     }
   }, [currentUserId, authToken])
   // Updated getTasks function
+  // In TaskTimeline.tsx
   const canViewTask = (task: Task) => {
     if (!currentUserId || !currentUserData) return false
 
@@ -260,6 +261,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     // Regular employees can only see their own tasks
     return taskEmployeeIdStr === currentUserIdStr
   }
+  // In TaskTimeline.tsx
   const getTasks = () => {
     if (!department) return []
 
