@@ -322,7 +322,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const isPM = task.time.toLowerCase().includes('pm')
 
     const hourIn24 = isPM && hour !== 12 ? hour + 12 : hour === 12 && !isPM ? 0 : hour
-    const topPosition = (hourIn24 - 9.47) * hourHeight + (minute * hourHeight) / 60
+    const topPosition = (hourIn24 - 9.39) * hourHeight + (minute * hourHeight) / 60
 
     let heightInMinutes = hourHeight // Default to 1 hour height
     if (task.endTime) {
@@ -493,7 +493,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                               minute === 0 ? 'border-gray-500' : 'border-gray-200'
                             }`}
                             style={{
-                              top: `${(hour - 9.28) * hourHeight + (minute * hourHeight) / 60}px`,
+                              top: `${(hour - 9.2) * hourHeight + (minute * hourHeight) / 60}px`,
                               position: 'absolute',
                               width: '100%',
                             }}
@@ -603,7 +603,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                               minute === 0 ? 'border-gray-500' : 'border-gray-200'
                             }`}
                             style={{
-                              top: `${(hour - 9.15) * hourHeight + (minute * hourHeight) / 60}px`,
+                              top: `${(hour - 9.06) * hourHeight + (minute * hourHeight) / 60}px`,
                               position: 'absolute',
                               width: '100%',
                             }}

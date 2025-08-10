@@ -460,6 +460,7 @@ const TasksContent = () => {
     const taskDate = new Date(selectedDate)
     const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate())
 
+    // Only check if the date is before today
     if (taskDay < today) {
       return {
         isValid: false,
@@ -467,25 +468,7 @@ const TasksContent = () => {
       }
     }
 
-    if (!isEdit && taskDay.getTime() === today.getTime()) {
-      const currentTime = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours(),
-        now.getMinutes(),
-      )
-
-      const taskDateTime = parseTimeStringToDateTime(startTime, taskDate)
-
-      if (taskDateTime <= currentTime) {
-        return {
-          isValid: false,
-          message: 'Cannot create tasks with start time in the past',
-        }
-      }
-    }
-
+    // For today's date, allow any time (remove the time check)
     return {
       isValid: true,
     }
