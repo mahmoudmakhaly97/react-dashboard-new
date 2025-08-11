@@ -115,9 +115,9 @@
   }
 }
 .btn-tasks-container {
-  @media (min-width: 768px) {
-    width: calc(100% - 17rem);
-  }
+  // @media (min-width: 768px) {
+  //   width: calc(100% - 17rem);
+  // }
   button {
     width: 35px;
     height: 35px;

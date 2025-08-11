@@ -178,8 +178,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
     // Always show weekly view when an employee is selected OR when in My Tasks view
     if (employee || showOnlyMyTasks) {
-      const weekStart = startOfWeek(addWeeks(currentDate, currentWeekOffset))
-      const weekEnd = endOfWeek(addWeeks(currentDate, currentWeekOffset))
+      const weekStart = startOfWeek(addWeeks(currentDate, currentWeekOffset), { weekStartsOn: 0 }) // 1 = Monday
+      const weekEnd = endOfWeek(addWeeks(currentDate, currentWeekOffset), { weekStartsOn: 0 }) // 1 = Monday
       return eachDayOfInterval({
         start: weekStart,
         end: weekEnd,
