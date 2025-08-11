@@ -34,7 +34,7 @@ import {
 
 import check from '/assets/images/check.png'
 import errorIcon from '/assets/images/error.png'
-import employee from '/assets/images/employee.jpg'
+import employee from '/assets/images/employee.gif'
 import { Loader, Pagination, ModalMaker } from '../../../ui'
 import EmployeeDetails from './../../employee-details/EmployeeDetails'
 import './EmployeesContent.scss'
@@ -527,25 +527,27 @@ const Dashboard = () => {
               Add Employee
             </Button>
             <ModalMaker modal={modal} toggle={toggle} centered size={'xl'}>
-              <div className="add-employee pe-5 ">
+              <div className="add-employee  ">
                 <Row>
                   <Col md={6}>
-                    <div className="position-relative">
-                      <div className="position-absolute end-0 p-4">
-                        <Button outline color="light" className="rounded-pill back-btn">
-                          Back To Website <MoveRight />
-                        </Button>
+                    <div className="position-relative h-100">
+                      <div className="h-100 d-flex justify-content-center align-items-center">
+                        <img
+                          src={employee}
+                          alt="Employee"
+                          className="rounded-3 img-fluid"
+                          style={{
+                            maxWidth: '100%',
+                            height: 'auto',
+                            imageRendering: 'auto', // could also try 'crisp-edges'
+                          }}
+                        />
                       </div>
-
-                      <img
-                        src={employee}
-                        className="img-fluid rounded-3"
-                        style={{ height: '650px' }}
-                      />
                     </div>
                   </Col>
-                  <Col md={1}></Col>
-                  <Col md={5}>
+
+                  {/* <Col md={1}></Col> */}
+                  <Col md={6}>
                     <h1 className="my-4">Add Employee</h1>
                     <Form onSubmit={handleSubmit}>
                       <Row>

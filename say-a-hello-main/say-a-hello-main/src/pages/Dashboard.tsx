@@ -446,7 +446,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
   }
 
   return (
-    <div className="flex h-[700px] overflow-hidden w-screen bg-background">
+    <div className="flex  overflow-hidden w-screen bg-background">
       <div className="flex h-full w-full flex-col">
         {/* Mobile menu button */}
         <div className="lg:hidden flex items-center justify-between p-4 border-b bg-background">
