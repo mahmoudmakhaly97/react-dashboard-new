@@ -59,7 +59,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const [currentUserData, setCurrentUserData] = useState<any>(null)
 
   const hourHeight = 120
-  const hours = Array.from({ length: 9 }, (_, i) => i + 10) // 10 AM to 6 PM
+  const hours = Array.from({ length: 24 }, (_, i) => i + 10)
 
   const handleNextWeek = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -458,23 +458,37 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
         </div>
       )}
 
-      <div className="relative min-h-[calc(9*120px)]">
+      <div className="relative min-h-[calc(24*120px)]">
         <div className="flex">
           {/* Hour lines column */}
+
           <div className="w-16 flex-shrink-0">
-            {hours.map((hour) => (
-              <div key={hour} className="h-[120px] flex items-end">
-                <div className="text-xs text-gray-500 pr-2 text-right w-full">
-                  {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
+            {hours.map((hour) => {
+              let label = ''
+
+              if (hour >= 0 && hour < 12) {
+                label = `${hour} AM`
+              } else if (hour === 12) {
+                label = '12 PM'
+              } else if (hour === 24) {
+                label = `  ${hour - 12}  AM`
+              } else if (hour > 12 && hour < 24) {
+                label = `  ${hour - 12}  PM`
+              } else {
+                label = `${hour - 24} AM`
+              }
+              return (
+                <div key={hour} className="h-[120px] flex items-end">
+                  <div className="text-xs text-gray-500 pr-2 text-right w-full">{label}</div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Tasks columns */}
           <div className="flex-1 overflow-hidden relative">
             <div
-              className="overflow-x-auto overflow-y-hidden rotate-180 h-full"
+              className="overflow-x-auto overflow-y-hidden rotate-180 "
               ref={(el) => {
                 if (el) el.scrollTop = 50
               }}
@@ -543,7 +557,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         </div>
 
                         {/* Tasks for this date */}
-                        <div className="relative h-[calc(9*120px)]">
+                        <div className="relative h-[calc(24*120px)]">
                           {tasks
                             .filter(
                               (task) => isSameDay(new Date(task.date), date) && !isBefore10AM(task),
@@ -641,7 +655,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         </div>
 
                         {/* Tasks for this employee */}
-                        <div className="relative h-[calc(9*120px)]">
+                        <div className="relative h-[calc(24*120px)]">
                           {(emp.tasks || [])
                             .filter(
                               (task) =>
