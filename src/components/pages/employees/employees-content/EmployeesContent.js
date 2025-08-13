@@ -67,7 +67,10 @@ const Dashboard = () => {
   const [modalMessageVisible, setModalMessageVisible] = useState(false)
   const [modalMessage, setModalMessage] = useState(null)
   const [employeeDetails, setEmployeeDetails] = useState(null)
-
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'ascending', // or 'descending'
+  })
   const toggle = () => setModal(!modal)
 
   const navigate = useNavigate()
@@ -465,7 +468,6 @@ const Dashboard = () => {
 
   const indexOfLastEmployee = currentPage * ITEMS_PER_PAGE
   const indexOfFirstEmployee = indexOfLastEmployee - ITEMS_PER_PAGE
-  const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee)
 
   useEffect(() => {
     setTotalPages(Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE))
@@ -475,7 +477,53 @@ const Dashboard = () => {
   useEffect(() => {
     setCurrentPage(1)
   }, [searchTerm, selectedDepartment, selectedManager])
+  // Add this sorting function
+  const sortedEmployees = React.useMemo(() => {
+    let sortableEmployees = [...filteredEmployees]
+    if (sortConfig.key) {
+      sortableEmployees.sort((a, b) => {
+        // Handle department sorting differently since it might be an ID or name
+        if (sortConfig.key === 'department') {
+          const aDept =
+            departments.find((d) => d.id === Number(a.department) || d.name === a.department)
+              ?.name || a.department
+          const bDept =
+            departments.find((d) => d.id === Number(b.department) || d.name === b.department)
+              ?.name || b.department
 
+          if (aDept < bDept) {
+            return sortConfig.direction === 'ascending' ? -1 : 1
+          }
+          if (aDept > bDept) {
+            return sortConfig.direction === 'ascending' ? 1 : -1
+          }
+          return 0
+        } else {
+          // For other fields (like name)
+          if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1
+          }
+          if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1
+          }
+          return 0
+        }
+      })
+    }
+    return sortableEmployees
+  }, [filteredEmployees, sortConfig, departments])
+
+  // Update your currentEmployees to use sortedEmployees
+  const currentEmployees = sortedEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee)
+
+  // Add this requestSort function
+  const requestSort = (key) => {
+    let direction = 'ascending'
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending'
+    }
+    setSortConfig({ key, direction })
+  }
   return (
     <div className="employees">
       <div className="title">
@@ -721,31 +769,36 @@ const Dashboard = () => {
                     <th>
                       <div className="d-flex align-items-center gap-2">
                         <span>NAME</span>
-                        <ChevronDown size={21} />
+                        <ChevronDown
+                          size={21}
+                          className="pointer"
+                          onClick={() => requestSort('name')}
+                        />
                       </div>
                     </th>
                     <th>
                       <div className="d-flex align-items-center gap-2">
                         <span>EMAIL</span>
-                        <ChevronDown size={21} />
                       </div>
                     </th>
                     <th>
                       <div className="d-flex align-items-center gap-2">
                         <span>DEPARTMENT</span>
-                        <ChevronDown size={21} />
+                        <ChevronDown
+                          size={21}
+                          className="pointer"
+                          onClick={() => requestSort('department')}
+                        />
                       </div>
                     </th>
                     <th>
                       <div className="d-flex align-items-center gap-2">
                         <span>MANAGER</span>
-                        <ChevronDown size={21} />
                       </div>
                     </th>
                     <th>
                       <div className="d-flex align-items-center gap-2">
                         <span>WORK MODE</span>
-                        <ChevronDown size={21} />
                       </div>
                     </th>
                   </tr>
