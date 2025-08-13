@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+/* eslint-disable prettier/prettier */
+import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from '/assets/images/5d-logo.png'
-import './index.css'
+
 import {
   CCloseButton,
   CSidebar,
@@ -24,32 +25,24 @@ const AppSidebar = () => {
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const navItems = useNavItems()
-  const [isHovered, setIsHovered] = useState(false)
 
   return (
     <CSidebar
-      className={`border-end ${unfoldable ? 'unfoldable' : ''}`}
+      className="border-end z-0"
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
       onVisibleChange={(visible) => {
         dispatch({ type: 'set', sidebarShow: visible })
       }}
-      onMouseEnter={() => unfoldable && setIsHovered(true)}
-      onMouseLeave={() => unfoldable && setIsHovered(false)}
     >
       <CSidebarHeader className="border-bottom">
         <div className="d-flex align-items-center gap-2">
           <img src={logo} alt="logo" width="40" height="40" />
-          {/* {(!unfoldable || isHovered) && <h6 className="sidebar-title">5d Dashboard</h6>} */}
-          <h6 className="sidebar-title">5d Dashboard</h6>
+          <h6>5d Dashboard</h6>
         </div>
       </CSidebarHeader>
-      <AppSidebarNav
-        items={navItems}
-        sidebarShow={sidebarShow && (!unfoldable || isHovered)}
-        unfoldable={unfoldable}
-      />
+      <AppSidebarNav items={navItems} />
     </CSidebar>
   )
 }

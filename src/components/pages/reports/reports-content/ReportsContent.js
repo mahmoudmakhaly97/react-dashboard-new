@@ -13,10 +13,11 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { Loader, Pagination } from '../../../ui'
+
 import './ReportsContent.scss'
 import { Button, Col, Row, Table } from 'reactstrap'
 import { BASE_URL } from '../../../../api/base'
+import { Loader, Pagination } from '../../../ui'
 const ReportsContent = () => {
   const [reportData, setReportData] = useState({
     employees: [],

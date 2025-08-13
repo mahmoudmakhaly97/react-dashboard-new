@@ -14,20 +14,20 @@ export const useNavItems = () => {
     },
   ]
 
-  const employeeNav = [
-    {
-      component: CNavItem,
-      name: 'Tasks',
-      to: '/tasks',
-      icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Clients',
-      to: '/clients',
-      icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
-    },
-  ]
+  // const employeeNav = [
+  //   {
+  //     component: CNavItem,
+  //     name: 'Tasks',
+  //     to: '/tasks',
+  //     icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+  //   },
+  //   {
+  //     component: CNavItem,
+  //     name: 'Clients',
+  //     to: '/clients',
+  //     icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+  //   },
+  // ]
 
   const hrNav = [
     {
@@ -44,7 +44,7 @@ export const useNavItems = () => {
     },
   ]
 
-  return [...common, ...(userType === 'employee' ? employeeNav : hrNav)]
+  return userType === 'hr' ? [...common, ...hrNav] : common
 }
 
 export default useNavItems
