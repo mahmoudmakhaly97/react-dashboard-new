@@ -3,6 +3,7 @@ import CIcon from '@coreui/icons-react'
 import { cilUser, cilDescription } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 import { useAuth } from '../../../../context/AuthContext'
+import { Inbox, LayoutListIcon, User, Users } from 'lucide-react'
 
 export const useNavItems = () => {
   const { userType } = useAuth()
@@ -19,19 +20,19 @@ export const useNavItems = () => {
       component: CNavItem,
       name: 'Tasks',
       to: '/tasks',
-      icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+      icon: <LayoutListIcon className="nav-icon" />,
     },
     {
       component: CNavItem,
       name: 'Clients',
       to: '/clients',
-      icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+      icon: <Users className="nav-icon" />,
     },
     {
       component: CNavItem,
       name: 'Requests',
       to: '/requests',
-      icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+      icon: <Inbox className="nav-icon" />,
     },
   ]
 

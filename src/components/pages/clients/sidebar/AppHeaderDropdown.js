@@ -80,7 +80,7 @@ const AppHeaderDropdown = () => {
 
   return (
     <div>
-      <CDropdown variant="nav-item" className="d-flex align-items-center border-0">
+      <CDropdown variant="nav-item d-flex align-items-center border-0">
         <span className="fw-medium d-none d-md-inline">{userData.name}</span>
 
         <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>

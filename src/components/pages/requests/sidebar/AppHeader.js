@@ -16,24 +16,26 @@ import AppHeaderDropdown from './AppHeaderDropdown'
 
 const AppHeader = () => {
   const headerRef = useRef()
-
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const unfoldable = useSelector((state) => state.sidebarUnfoldable)
 
-  useEffect(() => {
-    document.addEventListener('scroll', () => {
-      headerRef.current &&
-        headerRef.current.classList.toggle('', document.documentElement.scrollTop > 0)
-    })
-  }, [])
+  const toggleSidebar = () => {
+    if (sidebarShow) {
+      // If sidebar is visible, toggle between full and icon-only
+      dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })
+    } else {
+      // If sidebar is hidden, show it in full mode
+      dispatch({ type: 'set', sidebarShow: true, sidebarUnfoldable: false })
+    }
+  }
 
   return (
-    <CHeader position="sticky" className="mb-4 p-0    " ref={headerRef}>
-      <CContainer className="border-bottom px-4 d-flex justify-content-end" fluid>
+    <CHeader position="sticky" className="mb-4 p-0" ref={headerRef}>
+      <CContainer className="border-bottom px-4 d-flex justify-content-between" fluid>
         <CHeaderToggler
-          onClick={() => dispatch({ type: 'set', sidebarShow: !sidebarShow })}
+          onClick={toggleSidebar} // Use the new toggle function
           style={{ marginInlineStart: '-14px' }}
-          className="d-none "
         >
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>

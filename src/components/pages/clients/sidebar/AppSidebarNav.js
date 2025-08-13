@@ -5,17 +5,17 @@ import SimpleBar from 'simplebar-react'
 import 'simplebar-react/dist/simplebar.min.css'
 import { CBadge, CNavLink, CSidebarNav } from '@coreui/react'
 
-export const AppSidebarNav = ({ items }) => {
+export const AppSidebarNav = ({ items, sidebarShow, unfoldable }) => {
   const navLink = (name, icon, badge, indent = false) => {
     return (
       <>
-        {icon
-          ? icon
-          : indent && (
-              <span className="nav-icon">
-                <span className="nav-icon-bullet"></span>
-              </span>
-            )}
+        {icon ? (
+          <span className="nav-icon">{icon}</span>
+        ) : indent ? (
+          <span className="nav-icon">
+            <span className="nav-icon-bullet"></span>
+          </span>
+        ) : null}
         {name && name}
         {badge && (
           <CBadge color={badge.color} className="ms-auto" size="sm">
@@ -30,7 +30,7 @@ export const AppSidebarNav = ({ items }) => {
     const { component, name, badge, icon, ...rest } = item
     const Component = component
     return (
-      <Component as="div" key={index}>
+      <Component as="div" key={index} className={unfoldable ? 'no-hover' : ''}>
         {rest.to || rest.href ? (
           <CNavLink
             {...(rest.to && { as: NavLink })}
