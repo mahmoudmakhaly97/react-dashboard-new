@@ -27,7 +27,7 @@ const AppSidebar = () => {
 
   return (
     <CSidebar
-      className="border-end z-0"
+      className={`border-end  ${unfoldable ? 'unfoldable' : ''}`}
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
@@ -38,10 +38,14 @@ const AppSidebar = () => {
       <CSidebarHeader className="border-bottom">
         <div className="d-flex align-items-center gap-2">
           <img src={logo} alt="logo" width="40" height="40" />
-          <h6>5d Dashboard</h6>
+          {!unfoldable && <h6>5d Dashboard</h6>}
         </div>
       </CSidebarHeader>
-      <AppSidebarNav items={navItems} />
+      <AppSidebarNav
+        items={navItems}
+        sidebarShow={sidebarShow && !unfoldable}
+        unfoldable={unfoldable}
+      />
     </CSidebar>
   )
 }
