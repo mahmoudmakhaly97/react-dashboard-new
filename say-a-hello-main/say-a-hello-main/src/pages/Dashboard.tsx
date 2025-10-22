@@ -126,7 +126,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       // Fetch tasks
       const tasksResponse = await fetch(`${BASE_URL}/Tasks/GetAllTasks`, {
         headers: {
-          Authorization: `Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM3NSIsInN1YiI6IjM3NSIsImVtYWlsIjoibmloYWwua2FtYWxANWQtYWdlbmN5LmNvbSIsImp0aSI6IjhkYmNjMjgyLWI5OTUtNDAxOS05MGU5LWY0NTgzY2E4ZDNmZSIsImV4cCI6MTc1NTI1MDMzNCwiaXNzIjoiQXR0ZW5kYW5jZUFwcCIsImF1ZCI6IkF0dGVuZGFuY2VBcGlVc2VyIn0.WEezDMsZA5tXzKY75XCeIaGScMaTwZJhg4WWE-ufdT0`,
+          Authorization: `Bearer   ${authTasks?.token}`,
         },
       })
       const tasksData = await tasksResponse.json()
