@@ -17,7 +17,7 @@ import { BASE_URL } from '../../../../api/base'
 const EmployeeDetailsContent = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { employeeId } = location.state || {}
+  const { employeeId, filters } = location.state || {}
   const [employee, setEmployee] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editFormData, setEditFormData] = useState(employee || {})
@@ -186,7 +186,8 @@ const EmployeeDetailsContent = () => {
       setModalMessage(
         <div className="d-flex flex-column align-items-center gap-4">
           <img src={check} width={70} height={70} />
-          <h4> Employee updated successfully!</h4>
+          <h4>Employee updated successfully!</h4>
+      
         </div>,
       )
       // Close the modal
@@ -197,7 +198,16 @@ const EmployeeDetailsContent = () => {
   }
 
   const handleBack = () => {
-    navigate(-1)
+    // Navigate back with filters preserved
+    navigate('/employees', {
+      state: { filters },
+    })
+  }
+  const handleSaveSuccess = () => {
+    // After successful save, navigate back with filters
+    navigate('/employees', {
+      state: { filters },
+    })
   }
 
   if (loading) {
@@ -390,11 +400,8 @@ const EmployeeDetailsContent = () => {
                     centered
                     modalControls={
                       <Button
-                        color="secondary"
-                        onClick={() => {
-                          setModalMessageVisible(false)
-                          navigate('/employees')
-                        }}
+                        color="primary"
+                        onClick={handleSaveSuccess} // Use the new function
                         className="px-3 w-100"
                       >
                         Ok

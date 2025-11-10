@@ -15,7 +15,7 @@ import {
   UserCog,
 } from 'lucide-react'
 import { MultiSelect } from 'primereact/multiselect'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   Badge,
@@ -74,7 +74,43 @@ const Dashboard = () => {
   const toggle = () => setModal(!modal)
 
   const navigate = useNavigate()
+  const location = useLocation()
+  // Restore filters from location state when component mounts
+  useEffect(() => {
+    if (location.state?.filters) {
+      const { departments, managers, search } = location.state.filters
+      setSelectedDepartment(departments || [])
+      setSelectedManager(managers || [])
+      setSearchTerm(search || '')
 
+      // Clear the location state to avoid restoring on subsequent renders
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+  const handleEditClick = (employeeId, e) => {
+    e.stopPropagation() // Prevent row click
+    const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+    if (!authToken) {
+      setModalMessageVisible(true)
+      setModalMessage(
+        <div className="d-flex flex-column align-items-center gap-4">
+          <img src={errorIcon} width={70} height={70} />
+          <h4>Oops! Please Login And Try Again</h4>
+        </div>,
+      )
+    } else {
+      navigate('/employee', {
+        state: {
+          employeeId,
+          filters: {
+            departments: selectedDepartment,
+            managers: selectedManager,
+            search: searchTerm,
+          },
+        },
+      })
+    }
+  }
   const handleRowClick = (employeeId) => {
     // navigate('/employee', { state: { employeeId } })
 
@@ -106,21 +142,7 @@ const Dashboard = () => {
             <Pencil
               className="edit pointer"
               size={20}
-              onClick={() => {
-                const authToken =
-                  localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
-                if (!authToken) {
-                  setModalMessageVisible(true)
-                  setModalMessage(
-                    <div className="d-flex flex-column align-items-center gap-4">
-                      <img src={errorIcon} width={70} height={70} />
-                      <h4>Oops! Please Login And Try Again</h4>
-                    </div>,
-                  )
-                } else {
-                  navigate('/employee', { state: { employeeId } })
-                }
-              }}
+              onClick={(e) => handleEditClick(employeeId, e)} // Pass event
             />
 
             <div className="d-flex flex-column align-items-center gap-1 mb-4">
@@ -524,6 +546,7 @@ const Dashboard = () => {
     }
     setSortConfig({ key, direction })
   }
+
   return (
     <div className="employees">
       <div className="title">
