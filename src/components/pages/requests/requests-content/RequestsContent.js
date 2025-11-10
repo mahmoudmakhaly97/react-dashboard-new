@@ -27,7 +27,7 @@ const Requests = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${authTasks.token}`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI2NyIsInN1YiI6IjI2NyIsImVtYWlsIjoibW9oYW1lZC5lbGVyYWt5QDVkLWFnZW5jeS5jb20iLCJqdGkiOiI4YjVmZjQxNS1jMTVmLTRjN2YtOWNhYy02MmVhYzE1YTYyYTciLCJleHAiOjE3NjMxMTg2ODYsImlzcyI6IkF0dGVuZGFuY2VBcHAiLCJhdWQiOiJBdHRlbmRhbmNlQXBpVXNlciJ9.EPmIb9npugKmNzPW7Vmzr-WDfUFZJRrTDFUxwT0Ca48`,
           },
         },
       )
@@ -73,7 +73,7 @@ const Requests = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${authTasks.token}`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI2NyIsInN1YiI6IjI2NyIsImVtYWlsIjoibW9oYW1lZC5lbGVyYWt5QDVkLWFnZW5jeS5jb20iLCJqdGkiOiI4YjVmZjQxNS1jMTVmLTRjN2YtOWNhYy02MmVhYzE1YTYyYTciLCJleHAiOjE3NjMxMTg2ODYsImlzcyI6IkF0dGVuZGFuY2VBcHAiLCJhdWQiOiJBdHRlbmRhbmNlQXBpVXNlciJ9.EPmIb9npugKmNzPW7Vmzr-WDfUFZJRrTDFUxwT0Ca48`,
           },
         },
       )
@@ -114,7 +114,9 @@ const Requests = () => {
 
         // Fetch pending tasks
         const tasksResponse = await axios.get(`${BASE_URL}/Tasks/pending`, {
-          headers: { Authorization: `Bearer ${authTasks.token}` },
+          headers: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI2NyIsInN1YiI6IjI2NyIsImVtYWlsIjoibW9oYW1lZC5lbGVyYWt5QDVkLWFnZW5jeS5jb20iLCJqdGkiOiI4YjVmZjQxNS1jMTVmLTRjN2YtOWNhYy02MmVhYzE1YTYyYTciLCJleHAiOjE3NjMxMTg2ODYsImlzcyI6IkF0dGVuZGFuY2VBcHAiLCJhdWQiOiJBdHRlbmRhbmNlQXBpVXNlciJ9.EPmIb9npugKmNzPW7Vmzr-WDfUFZJRrTDFUxwT0Ca48`,
+          },
         })
 
         // Parse taskDetailsJson
@@ -133,7 +135,11 @@ const Requests = () => {
         for (const id of employeeIds) {
           const response = await axios.get(
             `https://attendance-service.5d-dev.com/api/Employee/GetEmployeeWithId?id=${id}`,
-            { headers: { Authorization: `Bearer ${authTasks.token}` } },
+            {
+              headers: {
+                Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI2NyIsInN1YiI6IjI2NyIsImVtYWlsIjoibW9oYW1lZC5lbGVyYWt5QDVkLWFnZW5jeS5jb20iLCJqdGkiOiI4YjVmZjQxNS1jMTVmLTRjN2YtOWNhYy02MmVhYzE1YTYyYTciLCJleHAiOjE3NjMxMTg2ODYsImlzcyI6IkF0dGVuZGFuY2VBcHAiLCJhdWQiOiJBdHRlbmRhbmNlQXBpVXNlciJ9.EPmIb9npugKmNzPW7Vmzr-WDfUFZJRrTDFUxwT0Ca48`,
+              },
+            },
           )
           employeesData[id] = response.data
         }

@@ -118,7 +118,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       // Fetch departments
       const departmentsResponse = await fetch(`${BASE_URL}/Employee/GetDepartments`, {
         headers: {
-          Authorization: `Bearer   ${authToken}`,
+          Authorization: `Bearer   ${authTasks.token}`,
         },
       })
       const departmentsData = await departmentsResponse.json()
@@ -126,7 +126,7 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
       // Fetch tasks
       const tasksResponse = await fetch(`${BASE_URL}/Tasks/GetAllTasks`, {
         headers: {
-          Authorization: `Bearer   ${authTasks?.token}`,
+          Authorization: `Bearer  ${authTasks.token}`,
         },
       })
       const tasksData = await tasksResponse.json()
@@ -149,9 +149,9 @@ const Dashboard = forwardRef((props: DashboardProps, ref) => {
                 id: task.id.toString(),
                 title: task.title,
                 description: task.description,
-                time: formatTime(task.startTime),
+                time: formatTime(task.startTime), // Make sure this works
                 endTime: task.endTime ? formatTime(task.endTime) : undefined,
-                date: new Date(task.startTime),
+                date: new Date(task.startTime), // Ensure this is correct
                 departmentId: task.departmentId,
                 assignedToEmployeeId: task.assignedToEmployeeId,
                 color: getRandomColor(),

@@ -142,7 +142,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           }),
         {
           headers: {
-            Authorization: `Bearer ${authTasks.token}  `,
+            Authorization: `Bearer  ${authTasks.token}`,
           },
         },
       )
@@ -196,7 +196,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
       try {
         const response = await fetch(`${BASE_URL}/Employee/GetEmployeeWithId?id=${currentUserId}`, {
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Bearer   ${authTasks.token}`,
           },
         })
         const data = await response.json()
@@ -206,7 +206,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
         if (data.isManager) {
           const teamResponse = await fetch(`${BASE_URL}/Employee/GetManagerTeam`, {
             headers: {
-              Authorization: `Bearer ${authToken}`,
+              Authorization: `Bearer   ${authTasks.token}`,
             },
           })
           const teamData = await teamResponse.json()
@@ -262,36 +262,52 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     return taskEmployeeIdStr === currentUserIdStr
   }
   // In TaskTimeline.tsx
+  // Add debugging to see what's happening:
   const getTasks = () => {
-    if (!department) return []
+    if (!department) {
+      console.log('No department selected')
+      return []
+    }
 
     let tasks = []
 
     if (employee || showOnlyMyTasks) {
+      console.log('Employee view or My Tasks view')
+
       if (employee) {
-        tasks = (employee.tasks || []).filter((task) => canViewTask(task))
+        console.log('Selected employee:', employee.name, 'ID:', employee.id)
+        tasks = employee.tasks || []
+        console.log('Employee tasks:', tasks)
       } else {
         tasks =
           department.employees?.flatMap((emp) =>
-            (emp.tasks || [])
-              .filter((task) => canViewTask(task))
-              .map((task) => ({
-                ...task,
-                employeeName: emp.name,
-                employeeAvatar: emp.avatar,
-              })),
+            (emp.tasks || []).map((task) => ({
+              ...task,
+              employeeName: emp.name,
+              employeeAvatar: emp.avatar,
+            })),
           ) || []
+        console.log('All department tasks:', tasks)
       }
 
+      // Filter by date range
       tasks = tasks.filter((task) => {
         const taskDate = new Date(task.date)
-        return dateRange.some((date) => isSameDay(taskDate, date))
+        const isInRange = dateRange.some((date) => isSameDay(taskDate, date))
+        console.log(`Task "${task.title}" on ${taskDate} in range:`, isInRange)
+        return isInRange
       })
     } else {
+      // Department view logic
+      console.log('Department view')
       tasks =
         department.employees?.flatMap((emp) =>
           (emp.tasks || [])
-            .filter((task) => isSameDay(new Date(task.date), currentDate) && canViewTask(task))
+            .filter((task) => {
+              const isSameDate = isSameDay(new Date(task.date), currentDate)
+              console.log(`Task "${task.title}" on same day:`, isSameDate)
+              return isSameDate
+            })
             .map((task) => ({
               ...task,
               employeeName: emp.name,
@@ -300,6 +316,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
         ) || []
     }
 
+    console.log('Final tasks to display:', tasks)
     return tasks
   }
   const tasks = getTasks()
@@ -317,7 +334,10 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   const employeesWithTasksToday = getEmployeesWithTasksToday()
 
+  // Add debugging to calculateTaskPosition:
   const calculateTaskPosition = (task: Task) => {
+    console.log('Calculating position for task:', task.title, 'Time:', task.time)
+
     const timeParts = task.time.split(':')
     const hour = parseInt(timeParts[0])
     const minute = parseInt(timeParts[1]?.split(' ')[0] || '0')
@@ -326,7 +346,9 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     const hourIn24 = isPM && hour !== 12 ? hour + 12 : hour === 12 && !isPM ? 0 : hour
     const topPosition = (hourIn24 - 9.38) * hourHeight + (minute * hourHeight) / 60
 
-    let heightInMinutes = hourHeight // Default to 1 hour height
+    console.log(`Time: ${task.time}, 24h: ${hourIn24}, Top: ${topPosition}px`)
+
+    let heightInMinutes = hourHeight
     if (task.endTime) {
       const endTimeParts = task.endTime.split(':')
       const endHour = parseInt(endTimeParts[0])
@@ -337,6 +359,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
         isEndPM && endHour !== 12 ? endHour + 12 : endHour === 12 && !isEndPM ? 0 : endHour
       const endPosition = (endHourIn24 - 10) * hourHeight + (endMinute * hourHeight) / 60
       heightInMinutes = endPosition - topPosition
+
+      console.log(`End time: ${task.endTime}, 24h: ${endHourIn24}, Height: ${heightInMinutes}px`)
     }
 
     return { top: topPosition, height: heightInMinutes }
@@ -675,6 +699,8 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
                                     minHeight: '40px',
                                     width: 'calc(100% - 8px)',
                                     left: '0px',
+                                    border: '2px solid red', // Temporary debug border
+                                    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Temporary background
                                   }}
                                 >
                                   <TaskCard

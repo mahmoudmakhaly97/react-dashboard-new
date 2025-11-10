@@ -50,7 +50,13 @@ const TasksContent = () => {
   const [currentUserId, setCurrentUserId] = useState(null)
   const [selectedDepartment, setSelectedDepartment] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
-
+  const [taskTypes, setTaskTypes] = useState([])
+  const [selectedTaskType, setSelectedTaskType] = useState('')
+  const [taskStatus, setTaskStatus] = useState({
+    isNew: false,
+    isAmend: false,
+    isRevisual: false,
+  })
   // Add state to preserve selected employee
   const [lastSelectedEmployee, setLastSelectedEmployee] = useState(null)
   const [shouldMaintainSelection, setShouldMaintainSelection] = useState(false)
@@ -71,6 +77,7 @@ const TasksContent = () => {
       : null,
   )
   const navigate = useNavigate()
+  // Update your formData state to include task type and status
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -86,6 +93,10 @@ const TasksContent = () => {
     startTime: '',
     endTime: '',
     createdAt: new Date().toISOString(),
+    taskTypeId: 0, // Add this
+    isNew: false, // Add these three
+    isAmend: false,
+    isRevisual: false,
   })
   const [modalMessage, setModalMessage] = useState(null)
   const [errorEditModalMessage, setErrorEditModalMessage] = useState(null)
@@ -132,6 +143,49 @@ const TasksContent = () => {
 
     return () => clearInterval(interval)
   }, [persistentSelection])
+  // Add this useEffect to fetch task types
+  useEffect(() => {
+    const fetchTaskTypes = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/Tasks/GetAllTaskTypes`, {
+          headers: {
+            Authorization: `Bearer ${ authTasks?.token}`,
+          },
+        })
+        const data = await response.json()
+        setTaskTypes(data)
+      } catch (error) {
+        console.error('Error fetching task types:', error)
+      }
+    }
+
+    fetchTaskTypes()
+  }, [authTasks?.token])
+  const handleTaskTypeChange = (e) => {
+    const selectedId = Number(e.target.value)
+    setSelectedTaskType(selectedId)
+    setFormData((prev) => ({
+      ...prev,
+      taskTypeId: selectedId,
+    }))
+  }
+  const handleStatusChange = (e) => {
+    const { name, checked } = e.target
+
+    // Reset all to false first, then set the selected one to true
+    const newStatus = {
+      isNew: false,
+      isAmend: false,
+      isRevisual: false,
+      [name]: checked,
+    }
+
+    setTaskStatus(newStatus)
+    setFormData((prev) => ({
+      ...prev,
+      ...newStatus,
+    }))
+  }
   // Function to show tooltip for past task operations
   const showPastTaskTooltip = (message, targetId) => {
     setPastTaskTooltip({
@@ -181,7 +235,7 @@ const TasksContent = () => {
       try {
         const response = await fetch(`${BASE_URL}/Employee/GetManagerTeam`, {
           headers: {
-            Authorization: `Bearer ${authTasks.token}`,
+            Authorization: `Bearer ${authTasks?.token}`,
           },
         })
 
@@ -210,7 +264,7 @@ const TasksContent = () => {
       // Fetch clients
       const clientsResponse = await fetch(`${BASE_URL}/Clients/GetAllClients`, {
         headers: {
-          Authorization: `Bearer  ${authTasks.token}`,
+          Authorization: `Bearer  ${authTasks?.token}`,
         },
       })
       const clientsData = await clientsResponse.json()
@@ -256,7 +310,7 @@ const TasksContent = () => {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
-          Authorization: `Bearer ${authTasks.token}`,
+          Authorization: `Bearer ${authTasks?.token}`,
         },
         body: JSON.stringify(taskId),
       })
@@ -450,9 +504,18 @@ const TasksContent = () => {
       startTime: '',
       endTime: '',
       createdAt: new Date().toISOString(),
+      taskTypeId: 0,
+      isNew: false,
+      isAmend: false,
+      isRevisual: false,
+    })
+    setSelectedTaskType('')
+    setTaskStatus({
+      isNew: false,
+      isAmend: false,
+      isRevisual: false,
     })
   }
-
   const validateTaskDateTime = (selectedDate, startTime, isEdit = false) => {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -500,7 +563,14 @@ const TasksContent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
+    // Add form validation
+    const formValidation = validateForm()
+    if (!formValidation.isValid) {
+      setTooltipMessage(formValidation.message)
+      setTooltipOpen(true)
+      setTimeout(() => setTooltipOpen(false), 4000)
+      return
+    }
     try {
       const selectedDate = dashboardRef.current?.getSelectedDate?.() || new Date()
       const validation = validateTaskDateTime(selectedDate, formData.startTime, false)
@@ -586,8 +656,12 @@ const TasksContent = () => {
         endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime, selectedDate) : null,
         createdAt: new Date().toISOString(),
         clientId: formData.clientId,
-        needsApproval: isTaskAfter6PM, // Based on task start time, not current time
-        status: isTaskAfter6PM ? 'Pending' : 'Approved', // Based on task start time
+        taskTypeId: Number(formData.taskTypeId), // Add this
+        isNew: formData.isNew, // Add these
+        isAmend: formData.isAmend,
+        isRevisual: formData.isRevisual,
+        needsApproval: isTaskAfter6PM,
+        status: isTaskAfter6PM ? 'Pending' : 'Approved',
       }
 
       console.log('=== API DATA DEBUG ===')
@@ -600,7 +674,7 @@ const TasksContent = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authTasks.token}`,
+          Authorization: `Bearer ${authTasks?.token}`,
         },
         body: JSON.stringify(apiData),
       })
@@ -683,7 +757,7 @@ const TasksContent = () => {
 
       const response = await fetch(`${BASE_URL}/Tasks/GetTaskById/${taskId.id}`, {
         headers: {
-          Authorization: `Bearer ${authTasks.token}`,
+          Authorization: `Bearer ${authTasks?.token}`,
         },
       })
 
@@ -698,23 +772,30 @@ const TasksContent = () => {
       }
 
       const taskData = await response.json()
-      console.log('Task Data Received:', taskData)
 
-      if (taskData.status === 'Completed') {
-        setModalMessage('This task is already completed and cannot be edited.')
-        setModalMessageVisible(true)
-        return
-      }
+      // Set task type and status
+      setSelectedTaskType(taskData.taskTypeId || 0)
+      setTaskStatus({
+        isNew: taskData.isNew || false,
+        isAmend: taskData.isAmend || false,
+        isRevisual: taskData.isRevisual || false,
+      })
+ console.log('Task Data Received:', taskData)
 
-      if (isTaskInPast(taskData.startTime)) {
-        showPastTaskTooltip('Cannot edit tasks from previous days.', 'dashboard-container')
-        return
-      }
+ if (taskData.status === 'Completed') {
+   setModalMessage('This task is already completed and cannot be edited.')
+   setModalMessageVisible(true)
+   return
+ }
 
-      const startTime = taskData.startTime ? format(new Date(taskData.startTime), 'HH:mm') : ''
-      const endTime = taskData.endTime ? format(new Date(taskData.endTime), 'HH:mm') : ''
-      const clientId = taskData.clientId ? String(taskData.clientId) : ''
+ if (isTaskInPast(taskData.startTime)) {
+   showPastTaskTooltip('Cannot edit tasks from previous days.', 'dashboard-container')
+   return
+ }
 
+ const startTime = taskData.startTime ? format(new Date(taskData.startTime), 'HH:mm') : ''
+ const endTime = taskData.endTime ? format(new Date(taskData.endTime), 'HH:mm') : ''
+ const clientId = taskData.clientId ? String(taskData.clientId) : ''
       setTaskToEdit(taskData)
       setFormData({
         title: taskData.title || '',
@@ -731,6 +812,10 @@ const TasksContent = () => {
         startTime: startTime,
         endTime: endTime,
         createdAt: taskData.createdAt || new Date().toISOString(),
+        taskTypeId: taskData.taskTypeId || 0,
+        isNew: taskData.isNew || false,
+        isAmend: taskData.isAmend || false,
+        isRevisual: taskData.isRevisual || false,
       })
 
       setEditModal(true)
@@ -764,6 +849,13 @@ const TasksContent = () => {
   const handleUpdateTask = async (e) => {
     e.preventDefault()
 
+    const formValidation = validateForm()
+    if (!formValidation.isValid) {
+      setTooltipMessage(formValidation.message)
+      setTooltipOpen(true)
+      setTimeout(() => setTooltipOpen(false), 4000)
+      return
+    }
     if (!taskToEdit) {
       console.error('No task selected for editing')
       return
@@ -842,6 +934,10 @@ const TasksContent = () => {
         startTime: convertToEgyptISOTime(formData.startTime),
         endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime) : null,
         createdAt: formData.createdAt,
+        taskTypeId: Number(formData.taskTypeId), // Add this
+        isNew: formData.isNew, // Add these
+        isAmend: formData.isAmend,
+        isRevisual: formData.isRevisual,
       }
 
       // Send update request
@@ -849,7 +945,7 @@ const TasksContent = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authTasks.token}`,
+          Authorization: `Bearer ${authTasks?.token}`,
         },
         body: JSON.stringify(apiData),
       })
@@ -912,6 +1008,17 @@ const TasksContent = () => {
         }
       }, 100)
     }
+  }
+  const validateForm = () => {
+    if (!formData.taskTypeId || formData.taskTypeId === 0) {
+      return { isValid: false, message: 'please select task type' }
+    }
+
+    if (!formData.isNew && !formData.isAmend && !formData.isRevisual) {
+      return { isValid: false, message: 'Please select one task status' }
+    }
+
+    return { isValid: true }
   }
   function parseTimeToSelectorValue(timeStr) {
     if (!timeStr) return { hours: 12, minutes: 0, period: 'AM' }
@@ -1160,7 +1267,7 @@ const TasksContent = () => {
     try {
       const response = await fetch(`${BASE_URL}/Tasks/GetTaskById/${task.id}`, {
         headers: {
-          Authorization: `Bearer ${authTasks.token}`,
+          Authorization: `Bearer ${authTasks?.token}`,
         },
       })
 
@@ -1420,7 +1527,75 @@ const TasksContent = () => {
                   </FormGroup>
                 </Col>
               </Row>
-
+              <Row>
+                <Col md={6}>
+                  <FormGroup>
+                    <Label for="taskTypeId">
+                      Task Type <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      type="select"
+                      id="taskTypeId"
+                      name="taskTypeId"
+                      value={selectedTaskType}
+                      onChange={handleTaskTypeChange}
+                      required
+                    >
+                      <option value="">Select Task Type</option>
+                      {taskTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                </Col>
+              </Row>
+              <Row className="my-3">
+                <Col>
+                  <FormGroup tag="fieldset">
+                    <Label>
+                      Task Status <span className="text-danger">*</span>
+                    </Label>
+                    <div className="d-flex gap-4">
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isNew"
+                            checked={taskStatus.isNew}
+                            onChange={handleStatusChange}
+                          />{' '}
+                          New
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isAmend"
+                            checked={taskStatus.isAmend}
+                            onChange={handleStatusChange}
+                          />{' '}
+                          Amend
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isRevisual"
+                            checked={taskStatus.isRevisual}
+                            onChange={handleStatusChange}
+                          />{' '}
+                          Revisual
+                        </Label>
+                      </FormGroup>
+                    </div>
+                    <small className="text-muted">Please select one task status</small>
+                  </FormGroup>
+                </Col>
+              </Row>
               <div>
                 <Button
                   id="submitTaskBtn"
@@ -1602,7 +1777,78 @@ const TasksContent = () => {
                   </FormGroup>
                 </Col>
               </Row>
-
+              <Row>
+                <Col md={6}>
+                  <FormGroup>
+                    <Label for="taskTypeId">
+                      Task Type <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      type="select"
+                      id="taskTypeId"
+                      name="taskTypeId"
+                      value={selectedTaskType}
+                      onChange={handleTaskTypeChange}
+                      required
+                    >
+                      <option value="">Select Task Type</option>
+                      {taskTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                </Col>
+              </Row>
+              <Row className="my-3">
+                <Col>
+                  <FormGroup tag="fieldset">
+                    <Label>
+                      Task Status <span className="text-danger">*</span>
+                    </Label>
+                    <div className="d-flex gap-4">
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isNew"
+                            checked={taskStatus.isNew}
+                            onChange={handleStatusChange}
+                            required
+                          />{' '}
+                          New
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isAmend"
+                            checked={taskStatus.isAmend}
+                            onChange={handleStatusChange}
+                            required
+                          />{' '}
+                          Amend
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isRevisual"
+                            checked={taskStatus.isRevisual}
+                            onChange={handleStatusChange}
+                            required
+                          />{' '}
+                          Revisual
+                        </Label>
+                      </FormGroup>
+                    </div>
+                    <small className="text-muted">Please select one task status</small>
+                  </FormGroup>
+                </Col>
+              </Row>
               <div>
                 <Button
                   id="updateTaskBtn"
