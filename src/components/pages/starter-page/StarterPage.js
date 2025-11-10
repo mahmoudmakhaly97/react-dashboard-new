@@ -147,15 +147,15 @@ const StarterPage = () => {
               className="employees-img-h"
               alt="employees"
             />
-            <h3>Employee</h3>
+            <h3>EMPLOYEE</h3>
           </Card>
           <Card
-            className="p-4 rounded-4 cursor-pointer d-flex flex-column align-items-center justify-content-center bg-white border-0"
+            className="py-4 px-1 rounded-4 cursor-pointer d-flex flex-column align-items-center justify-content-center bg-white border-0"
             onClick={() => navigate('/login')}
           >
             <img src="./assets/images/hr.svg" alt="hr" className="employees-img" />
             <img src="./assets/images/hr-h.svg" alt="hr" className="employees-img-h" />
-            <h3>human resources</h3>
+            <h3>HUMAN RESOURCE</h3>
           </Card>
         </div>
       </div>
