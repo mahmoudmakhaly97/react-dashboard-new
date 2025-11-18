@@ -77,7 +77,7 @@ const TasksContent = () => {
       : null,
   )
   const navigate = useNavigate()
-  // Update your formData state to include task type and status
+  // Update your formData state to include isOutOfScoop
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -93,10 +93,11 @@ const TasksContent = () => {
     startTime: '',
     endTime: '',
     createdAt: new Date().toISOString(),
-    taskTypeId: 0, // Add this
-    isNew: false, // Add these three
+    taskTypeId: 0,
+    isNew: false,
     isAmend: false,
     isRevisual: false,
+    isOutOfScoop: false,
   })
   const [modalMessage, setModalMessage] = useState(null)
   const [errorEditModalMessage, setErrorEditModalMessage] = useState(null)
@@ -149,7 +150,7 @@ const TasksContent = () => {
       try {
         const response = await fetch(`${BASE_URL}/Tasks/GetAllTaskTypes`, {
           headers: {
-            Authorization: `Bearer ${ authTasks?.token}`,
+            Authorization: `Bearer ${authTasks?.token}`,
           },
         })
         const data = await response.json()
@@ -184,6 +185,13 @@ const TasksContent = () => {
     setFormData((prev) => ({
       ...prev,
       ...newStatus,
+    }))
+  }
+  const handleOutOfScoopChange = (e) => {
+    const { checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      isOutOfScoop: checked,
     }))
   }
   // Function to show tooltip for past task operations
@@ -508,6 +516,7 @@ const TasksContent = () => {
       isNew: false,
       isAmend: false,
       isRevisual: false,
+      isOutOfScoop: false, // Add this line
     })
     setSelectedTaskType('')
     setTaskStatus({
@@ -656,10 +665,11 @@ const TasksContent = () => {
         endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime, selectedDate) : null,
         createdAt: new Date().toISOString(),
         clientId: formData.clientId,
-        taskTypeId: Number(formData.taskTypeId), // Add this
-        isNew: formData.isNew, // Add these
+        taskTypeId: Number(formData.taskTypeId),
+        isNew: formData.isNew,
         isAmend: formData.isAmend,
         isRevisual: formData.isRevisual,
+        isOutOfScoop: formData.isOutOfScoop, // Add this line
         needsApproval: isTaskAfter6PM,
         status: isTaskAfter6PM ? 'Pending' : 'Approved',
       }
@@ -780,22 +790,22 @@ const TasksContent = () => {
         isAmend: taskData.isAmend || false,
         isRevisual: taskData.isRevisual || false,
       })
- console.log('Task Data Received:', taskData)
+      console.log('Task Data Received:', taskData)
 
- if (taskData.status === 'Completed') {
-   setModalMessage('This task is already completed and cannot be edited.')
-   setModalMessageVisible(true)
-   return
- }
+      if (taskData.status === 'Completed') {
+        setModalMessage('This task is already completed and cannot be edited.')
+        setModalMessageVisible(true)
+        return
+      }
 
- if (isTaskInPast(taskData.startTime)) {
-   showPastTaskTooltip('Cannot edit tasks from previous days.', 'dashboard-container')
-   return
- }
+      if (isTaskInPast(taskData.startTime)) {
+        showPastTaskTooltip('Cannot edit tasks from previous days.', 'dashboard-container')
+        return
+      }
 
- const startTime = taskData.startTime ? format(new Date(taskData.startTime), 'HH:mm') : ''
- const endTime = taskData.endTime ? format(new Date(taskData.endTime), 'HH:mm') : ''
- const clientId = taskData.clientId ? String(taskData.clientId) : ''
+      const startTime = taskData.startTime ? format(new Date(taskData.startTime), 'HH:mm') : ''
+      const endTime = taskData.endTime ? format(new Date(taskData.endTime), 'HH:mm') : ''
+      const clientId = taskData.clientId ? String(taskData.clientId) : ''
       setTaskToEdit(taskData)
       setFormData({
         title: taskData.title || '',
@@ -816,6 +826,7 @@ const TasksContent = () => {
         isNew: taskData.isNew || false,
         isAmend: taskData.isAmend || false,
         isRevisual: taskData.isRevisual || false,
+        isOutOfScoop: taskData.isOutOfScoop || false, // Add this line
       })
 
       setEditModal(true)
@@ -934,12 +945,12 @@ const TasksContent = () => {
         startTime: convertToEgyptISOTime(formData.startTime),
         endTime: formData.endTime ? convertToEgyptISOTime(formData.endTime) : null,
         createdAt: formData.createdAt,
-        taskTypeId: Number(formData.taskTypeId), // Add this
-        isNew: formData.isNew, // Add these
+        taskTypeId: Number(formData.taskTypeId),
+        isNew: formData.isNew,
         isAmend: formData.isAmend,
         isRevisual: formData.isRevisual,
+        isOutOfScoop: formData.isOutOfScoop, // Add this line
       }
-
       // Send update request
       const response = await fetch(`${BASE_URL}/Tasks/UpdateTask`, {
         method: 'POST',
@@ -1596,6 +1607,24 @@ const TasksContent = () => {
                   </FormGroup>
                 </Col>
               </Row>
+              <Row className="my-3">
+                <Col>
+                  <FormGroup check>
+                    <Label check>
+                      <Input
+                        type="checkbox"
+                        name="isOutOfScoop"
+                        checked={formData.isOutOfScoop}
+                        onChange={handleOutOfScoopChange}
+                      />{' '}
+                      Out of Scoop
+                    </Label>
+                    <small className="text-muted d-block">
+                      Check this if the task is outside the normal scope of work
+                    </small>
+                  </FormGroup>
+                </Col>
+              </Row>
               <div>
                 <Button
                   id="submitTaskBtn"
@@ -1846,6 +1875,25 @@ const TasksContent = () => {
                       </FormGroup>
                     </div>
                     <small className="text-muted">Please select one task status</small>
+                  </FormGroup>
+                </Col>
+              </Row>
+              {/* Add this after the Task Status section in Edit Task modal */}
+              <Row className="my-3">
+                <Col>
+                  <FormGroup check>
+                    <Label check>
+                      <Input
+                        type="checkbox"
+                        name="isOutOfScoop"
+                        checked={formData.isOutOfScoop}
+                        onChange={handleOutOfScoopChange}
+                      />{' '}
+                      Out of Scoop
+                    </Label>
+                    <small className="text-muted d-block">
+                      Check this if the task is outside the normal scope of work
+                    </small>
                   </FormGroup>
                 </Col>
               </Row>
