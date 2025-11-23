@@ -187,7 +187,6 @@ const EmployeeDetailsContent = () => {
         <div className="d-flex flex-column align-items-center gap-4">
           <img src={check} width={70} height={70} />
           <h4>Employee updated successfully!</h4>
-      
         </div>,
       )
       // Close the modal
